@@ -1,0 +1,86 @@
+services:
+  lio-agent-python:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: lio-agent-app-python
+    restart: always
+    environment:
+      - DB_NAME=${POSTGRES_DB}
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASS=${POSTGRES_PW}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    env_file:
+      - .env
+    networks:
+      - lio_agent_net        
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    volumes:
+      - lio_ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 10s
+      start_period: 20s
+      retries: 5
+    networks:
+      - lio_agent_net
+    # GPU NVIDIA
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # Contenedor auxiliar para descargar el modelo
+  ollama-pull-model:
+    image: curlimages/curl:latest
+    container_name: ollama-pull-model
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: [ "curl", "-X", "POST", "http://ollama:11434/api/pull", "-d", '{"name": "llama3.1"}' ]
+    networks:
+      - lio_agent_net
+
+  postgres:
+    image: postgres:18.1
+    container_name: lio_agent_postgres_db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PASSWORD=${POSTGRES_PW}
+    ports:
+      - "5434:5432"
+    volumes:
+      - lio_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+    networks:
+      - lio_agent_net
+
+
+volumes:
+  lio_ollama_data:
+    external: true
+
+  lio_postgres_data:
+    external: true
+networks:
+  lio_agent_net:
+    external: true

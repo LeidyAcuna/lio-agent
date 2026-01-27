@@ -1,0 +1,18 @@
+-- Table: public.expenses
+
+CREATE TABLE IF NOT EXISTS public.expenses
+(
+    id SERIAL NOT NULL,
+    user_id bigint NOT NULL,
+    completion_date timestamp without time zone NOT NULL DEFAULT now(),
+    category character varying(200) COLLATE pg_catalog."default" NOT NULL,
+    source character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    description text COLLATE pg_catalog."default" NOT NULL,
+    total numeric(10,2) NOT NULL DEFAULT 0,
+    CONSTRAINT expenses_pkey PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.expenses
+    OWNER to lio_admin;
