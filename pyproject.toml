@@ -8,5 +8,6 @@ dependencies = [
     "langchain>=1.2.7",
     "langchain-ollama>=1.0.1",
     "psycopg2-binary>=2.9.11",
+    "pydantic>=2.12.5",
     "python-telegram-bot>=22.6",
 ]

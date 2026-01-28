@@ -253,6 +253,7 @@ dependencies = [
     { name = "langchain" },
     { name = "langchain-ollama" },
     { name = "psycopg2-binary" },
+    { name = "pydantic" },
     { name = "python-telegram-bot" },
 ]
 
@@ -261,6 +262,7 @@ requires-dist = [
     { name = "langchain", specifier = ">=1.2.7" },
     { name = "langchain-ollama", specifier = ">=1.0.1" },
     { name = "psycopg2-binary", specifier = ">=2.9.11" },
+    { name = "pydantic", specifier = ">=2.12.5" },
     { name = "python-telegram-bot", specifier = ">=22.6" },
 ]
 
