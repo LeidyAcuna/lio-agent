@@ -34,7 +34,7 @@ Responde EXCLUSIVAMENTE con un objeto JSON que siga este esquema:
 }}
 """
 
-def test_ollama() -> Expense:
+def test_ollama(user_input: str) -> Expense:
     template = ChatPromptTemplate(
         [
             ("system", system_prompt),
@@ -55,7 +55,7 @@ def test_ollama() -> Expense:
         "current_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "category": [e.value for e in CategoryEnum],
         "source": [e.value for e in SourceEnum],
-        "user_input": "Me gasté 4000 en huevos ayer por la mañana y pagué con Nubank de Leidy"
+        "user_input": user_input
     })
 
     return ai_msg

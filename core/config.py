@@ -7,6 +7,8 @@ class Settings:
     POSTGRES_DB: str = os.getenv("DB_NAME")
     SERVICE_POSTGRES_HOST: str = os.getenv("DB_HOST")
     SERVICE_POSTGRES_PORT: str = os.getenv("DB_PORT")
+    TOKEN_TELEGRAM_BOT: str = os.getenv("TOKEN_BOT")
+    MAX_CONCURRENCY_QUEUE: str = os.getenv("MAX_CONCURRENCY")
 
 
 
