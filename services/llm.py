@@ -1,15 +1,15 @@
 from datetime import datetime
-from langchain_ollama import ChatOllama
-from langchain_core.prompts import ChatPromptTemplate
+
 from langchain_core.output_parsers import PydanticOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_ollama import ChatOllama
 
-from models.expense import CategoryEnum, SourceEnum, Expense
-
+from models.expense import CategoryEnum, Expense, SourceEnum
 
 system_prompt = """
 
 # ROL
-Eres un Asistente de Extracción de Datos Financieros. 
+Eres un Asistente de Extracción de Datos Financieros.
 Tu única misión es transformar mensajes de texto en un formato estructurado.
 
 # REGLAS DE CATEGORIZACIÓN (ESTRICTAS)
@@ -34,6 +34,7 @@ Responde EXCLUSIVAMENTE con un objeto JSON que siga este esquema:
 }}
 """
 
+
 def test_ollama(user_input: str) -> Expense:
     template = ChatPromptTemplate(
         [
@@ -41,24 +42,19 @@ def test_ollama(user_input: str) -> Expense:
             ("human", "{user_input}"),
         ]
     )
-    
-    llm = ChatOllama(
-        model="llama3.1",
-        temperature=0,
-        base_url="http://ollama:11434"
-    )
+
+    llm = ChatOllama(model="llama3.1", temperature=0, base_url="http://ollama:11434")
     parser = PydanticOutputParser(pydantic_object=Expense)
 
     chain = template | llm | parser
 
-    ai_msg = chain.invoke({
-        "current_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "category": [e.value for e in CategoryEnum],
-        "source": [e.value for e in SourceEnum],
-        "user_input": user_input
-    })
+    ai_msg = chain.invoke(
+        {
+            "current_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "category": [e.value for e in CategoryEnum],
+            "source": [e.value for e in SourceEnum],
+            "user_input": user_input,
+        }
+    )
 
     return ai_msg
-    
-
-

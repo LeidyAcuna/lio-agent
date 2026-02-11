@@ -11,7 +11,9 @@ class Settings:
     MAX_CONCURRENCY_QUEUE: str = os.getenv("MAX_CONCURRENCY")
 
 
+_settings = Settings()
+
 
 def get_settings():
     print("Loading config settings from environment")
-    return Settings()
+    return _settings

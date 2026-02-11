@@ -14,7 +14,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 
 RUN uv sync --frozen --no-install-project
-# Copy the project into the image 
+# Copy the project into the image
 
 COPY . .
 

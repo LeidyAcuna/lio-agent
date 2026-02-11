@@ -1,6 +1,6 @@
 services:
   lio-agent-python:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     container_name: lio-agent-app-python
@@ -11,6 +11,8 @@ services:
       - DB_PASS=${POSTGRES_PW}
       - DB_HOST=postgres
       - DB_PORT=5432
+      - TOKEN_BOT={TOKEN_TELEGRAM_LIO}
+      - MAX_CONCURRENCY={MAX_CONCURRENCY}
     depends_on:
       postgres:
         condition: service_healthy
@@ -19,7 +21,7 @@ services:
     env_file:
       - .env
     networks:
-      - lio_agent_net        
+      - lio_agent_net
   ollama:
     image: ollama/ollama:latest
     container_name: ollama

@@ -1,0 +1,18 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace      # Elimina espacios al final de las líneas
+      - id: end-of-file-fixer        # Asegura que los archivos terminen con una línea en blanco
+      - id: check-yaml               # Valida la sintaxis de tus archivos .yaml
+      - id: check-added-large-files  # Evita que subas archivos gigantes por error
+
+  - repo: https://github.com/psf/black
+    rev: 26.1.0
+    hooks:
+      - id: black                    # El formateador oficial de Python
+
+  - repo: https://github.com/pycqa/isort
+    rev: 7.0.0
+    hooks:
+      - id: isort                    # Ordena tus imports alfabéticamente

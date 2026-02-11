@@ -1,15 +1,17 @@
 import logging
 
 import psycopg2
+
 from core.connections import ConnectDB
 from core.cursor import LoggingCursor
-from models.expense import Expense
 from core.exceptions.base import DatabaseInsertError
+from models.expense import Expense
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('db_init')
+logging.basicConfig(level=logging.INFO)  # TODO: REVISAR - loop.run_in_executor
+logger = logging.getLogger("db_init")
 
-class ManagerDB():
+
+class ManagerDB:
 
     def __init__(self) -> None:
         self.db = ConnectDB()
@@ -28,15 +30,21 @@ class ManagerDB():
             logger.error(f"Failed to connect or initialize DB: {error}")
             raise error
 
-
     def insert_row_in_db(self, user_id: int, object: Expense) -> None:
         try:
             with self.db.get_pg_conn() as conn:
                 with conn.cursor(cursor_factory=LoggingCursor) as cur:
                     cur.execute(
-                        """INSERT INTO expenses (user_id, completion_date, category, source, description, total) 
+                        """INSERT INTO expenses (user_id, completion_date, category, source, description, total)
                         values (%s, %s, %s, %s, %s, %s)""",
-                        (user_id, object.completion_date, object.category.value, object.source.value, object.description, object.total)
+                        (
+                            user_id,
+                            object.completion_date,
+                            object.category.value,
+                            object.source.value,
+                            object.description,
+                            object.total,
+                        ),
                     )
                     conn.commit()
                     logger.info("New row was inserted successfully!")

@@ -1,9 +1,9 @@
 import logging
+
 from psycopg2.extensions import cursor
 
-
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('db_init')
+logger = logging.getLogger("db_init")
 
 
 class LoggingCursor(cursor):

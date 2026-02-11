@@ -1,4 +1,5 @@
 import asyncio
+
 from repository.data import ManagerDB
 from services.asqueue import QueueManager, tasks
 from services.bot import TelegramBot
@@ -15,10 +16,14 @@ async def main():
     print("DB inicialized succesfully!")
 
     # Define telegram bot with filters and handler
-    telegram_bot.get_updates_bot(queue_manager=queue_manager)   
+    telegram_bot.get_updates_bot(queue_manager=queue_manager)
 
     # Run to workers for preparing to job
-    mtasks = await tasks(queue_manager=queue_manager, db_manager=db_manager, telegram_app=telegram_bot.app)
+    mtasks = await tasks(
+        queue_manager=queue_manager,
+        db_manager=db_manager,
+        telegram_app=telegram_bot.app,
+    )
     print(f"Executing {len(mtasks)} workers")
 
     # Guarantee the bot was starting and stoping correctly
@@ -36,7 +41,7 @@ async def main():
             # El programa se quedará aquí "esperando la señal"
             # permitiendo que los workers y el bot sigan procesando
             await stop_event.wait()
-        except (KeyboardInterrupt, SystemError):
+        except KeyboardInterrupt, SystemError:
             print("Deteniendo...")
         finally:
             # Primero detenemos el polling para que no lance el error de "Application still running"
@@ -44,8 +49,8 @@ async def main():
             await telegram_bot.app.stop()
             await telegram_bot.app.shutdown()
 
-
-
+    # TODO: Close all connections
+    db_manager.close_all_pg_conn()
 
 
 if __name__ == "__main__":
