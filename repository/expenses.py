@@ -24,7 +24,7 @@ class ExpenseRepository:
         """
         self.db = DatabaseManager()
 
-    async def initialize_schema(self) -> None:
+    async def setup_schema(self) -> None:
         """
         Sets up the database structure required for the repository.
 

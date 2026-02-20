@@ -3,7 +3,7 @@ import logging
 from typing import Callable, List
 
 from core.config import get_settings
-from core.exceptions import AppError
+from core.exceptions.base import AppError
 from models.message import Message
 from repository.expenses import ExpenseRepository
 from services.orchestrator import process_expense_message

@@ -1,6 +1,6 @@
 import os
 
-from core.exceptions import ConfigurationError
+from core.exceptions.base import ConfigurationError
 
 
 class Settings:

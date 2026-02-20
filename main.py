@@ -4,7 +4,7 @@ import os
 
 import debugpy
 
-from core.exceptions import AppError
+from core.exceptions.base import AppError
 from repository.expenses import ExpenseRepository
 from services.bot import TelegramBot
 from services.processor_queue import ProcessingQueue, start_worker_tasks
@@ -31,13 +31,13 @@ async def run_application():
 
         # Initialize Infrastructure
         expense_repository = ExpenseRepository()
-        await expense_repository.initialize()
+        await expense_repository.db.initialize()
 
         processing_queue = ProcessingQueue()
         bot_service = TelegramBot()
 
         # Database schema verification/setup
-        await expense_repository.initialize_schema()
+        await expense_repository.setup_schema()
         logger.info("Infrastructure initialized successfully.")
 
         # Register bot handlers
@@ -73,7 +73,7 @@ async def run_application():
                 await bot_service.app.shutdown()
 
         logger.info("Closing database connections...")
-        await expense_repository.close()
+        await expense_repository.db.shutdown()
 
     except AppError as e:
         logger.critical(f"Application failed to start: {e.to_dict()}", exc_info=True)

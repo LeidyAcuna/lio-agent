@@ -6,7 +6,7 @@ from psycopg_pool import AsyncConnectionPool
 
 from core.config import get_settings
 from core.cursor import LoggingCursor
-from core.exceptions import DatabaseConnectionError
+from core.exceptions.base import DatabaseConnectionError
 
 settings = get_settings()
 
