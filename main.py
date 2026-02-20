@@ -1,61 +1,96 @@
 import asyncio
+import logging
+import os
 
-from repository.data import ManagerDB
-from services.asqueue import QueueManager, tasks
+import debugpy
+
+from core.exceptions import AppError
+from repository.expenses import ExpenseRepository
 from services.bot import TelegramBot
+from services.processor_queue import ProcessingQueue, start_worker_tasks
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
-async def main():
-    # Preparation phase - Inicializing manager for db, queue and bot
-    print("Hello from lio-agent!")
-    db_manager = ManagerDB()
-    queue_manager = QueueManager()
-    telegram_bot = TelegramBot()
+async def run_application():
+    """
+    Main entry point for the Lio-Agent application.
 
-    db_manager.init_db()
-    print("DB inicialized succesfully!")
+    This function coordinates the initialization of all core components:
+    1. Establishes database connections and initializes the schema.
+    2. Sets up the asynchronous processing queue.
+    3. Configures the Telegram bot and its message handlers.
+    4. Starts the background worker tasks for processing messages.
+    5. Runs the bot's polling loop until a termination signal is received.
+    """
+    try:
+        logger.info("Initializing Lio-Agent core services...")
 
-    # Define telegram bot with filters and handler
-    telegram_bot.get_updates_bot(queue_manager=queue_manager)
+        # Initialize Infrastructure
+        expense_repository = ExpenseRepository()
+        await expense_repository.initialize()
 
-    # Run to workers for preparing to job
-    mtasks = await tasks(
-        queue_manager=queue_manager,
-        db_manager=db_manager,
-        telegram_app=telegram_bot.app,
-    )
-    print(f"Executing {len(mtasks)} workers")
+        processing_queue = ProcessingQueue()
+        bot_service = TelegramBot()
 
-    # Guarantee the bot was starting and stoping correctly
-    async with telegram_bot.app:
-        # Starting the bot
-        await telegram_bot.app.initialize()
-        await telegram_bot.app.start()
+        # Database schema verification/setup
+        await expense_repository.initialize_schema()
+        logger.info("Infrastructure initialized successfully.")
 
-        await telegram_bot.app.updater.start_polling()
-        # Creamos nuestra propia "ancla" ⚓
-        stop_event = asyncio.Event()
-        print("Bot escuchando... Usa Ctrl+C para detenerlo.")
+        # Register bot handlers
+        bot_service.setup_handlers(queue_manager=processing_queue)
 
-        try:
-            # El programa se quedará aquí "esperando la señal"
-            # permitiendo que los workers y el bot sigan procesando
-            await stop_event.wait()
-        except KeyboardInterrupt, SystemError:
-            print("Deteniendo...")
-        finally:
-            # Primero detenemos el polling para que no lance el error de "Application still running"
-            await telegram_bot.app.updater.stop()
-            await telegram_bot.app.stop()
-            await telegram_bot.app.shutdown()
+        # Start background workers
+        worker_tasks = await start_worker_tasks(
+            queue_manager=processing_queue,
+            expense_repository=expense_repository,
+            telegram_app=bot_service.app,
+        )
+        logger.info(f"Background processing started with {len(worker_tasks)} workers.")
 
-    # TODO: Close all connections
-    db_manager.close_all_pg_conn()
+        # Start the Telegram Bot lifecycle
+        async with bot_service.app:
+            await bot_service.app.initialize()
+            await bot_service.app.start()
+            await bot_service.app.updater.start_polling()
+
+            # Use an event to keep the application alive during polling
+            stop_event = asyncio.Event()
+            logger.info("Bot is active and listening. Use Ctrl+C to shut down.")
+
+            try:
+                # Wait forever until interrupted
+                await stop_event.wait()
+            except KeyboardInterrupt, SystemError:
+                logger.info("Shutdown signal received.")
+            finally:
+                logger.info("Closing bot services...")
+                await bot_service.app.updater.stop()
+                await bot_service.app.stop()
+                await bot_service.app.shutdown()
+
+        logger.info("Closing database connections...")
+        await expense_repository.close()
+
+    except AppError as e:
+        logger.critical(f"Application failed to start: {e.to_dict()}", exc_info=True)
+    except Exception as e:
+        logger.critical(
+            f"Unrecoverable error during execution: {str(e)}", exc_info=True
+        )
 
 
 if __name__ == "__main__":
-    # asyncio.run es el único que maneja el loop de forma global
+    # Optional Debug Mode configuration
+    if os.getenv("DEBUG_MODE") == "true":
+        debugpy.listen(("0.0.0.0", 5679))
+        print("Waiting for debugger to attach...")
+        debugpy.wait_for_client()
+
     try:
-        asyncio.run(main())
+        asyncio.run(run_application())
     except KeyboardInterrupt:
-        pass
+        logger.info("Application stopped by user.")

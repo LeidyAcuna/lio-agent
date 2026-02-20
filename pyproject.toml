@@ -7,12 +7,19 @@ requires-python = ">=3.14"
 dependencies = [
     "langchain>=1.2.7",
     "langchain-ollama>=1.0.1",
-    "psycopg2-binary>=2.9.11",
+    "psycopg[binary,pool]>=3.3.2",
     "pydantic>=2.12.5",
     "python-telegram-bot>=22.6",
 ]
 
 [dependency-groups]
 dev = [
+    "debugpy>=1.8.20",
     "pre-commit>=4.5.1",
 ]
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+line-length = 88

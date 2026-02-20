@@ -1,12 +1,18 @@
+import logging
 from datetime import datetime
 
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 
+from core.config import get_settings
+from core.exceptions.base import AIProcessingError, OllamaServiceError
 from models.expense import CategoryEnum, Expense, SourceEnum
 
-system_prompt = """
+settings = get_settings()
+logger = logging.getLogger(__name__)
+
+EXPENSE_EXTRACTION_PROMPT = """
 
 # ROL
 Eres un Asistente de Extracción de Datos Financieros.
@@ -35,26 +41,53 @@ Responde EXCLUSIVAMENTE con un objeto JSON que siga este esquema:
 """
 
 
-def test_ollama(user_input: str) -> Expense:
-    template = ChatPromptTemplate(
+async def extract_expense_from_text(user_input: str) -> Expense:
+    """
+    Uses an LLM to extract structured expense data from a natural language message.
+
+    Args:
+        user_input (str): The raw text message from the user.
+
+    Returns:
+        Expense: A structured model containing the extracted financial data.
+
+    Raises:
+        OllamaServiceError: If there is a connection issue with the LLM service.
+        AIProcessingError: If the LLM fails to parse the message or returns invalid data.
+    """
+    prompt_template = ChatPromptTemplate(
         [
-            ("system", system_prompt),
+            ("system", EXPENSE_EXTRACTION_PROMPT),
             ("human", "{user_input}"),
         ]
     )
 
+    # Initialize the LLM (Ollama)
     llm = ChatOllama(model="llama3.1", temperature=0, base_url="http://ollama:11434")
-    parser = PydanticOutputParser(pydantic_object=Expense)
 
-    chain = template | llm | parser
+    output_parser = PydanticOutputParser(pydantic_object=Expense)
 
-    ai_msg = chain.invoke(
-        {
-            "current_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "category": [e.value for e in CategoryEnum],
-            "source": [e.value for e in SourceEnum],
-            "user_input": user_input,
-        }
-    )
+    # Construct the processing chain
+    processing_chain = prompt_template | llm | output_parser
 
-    return ai_msg
+    try:
+        logger.info("Invoking LLM for expense extraction...")
+
+        extracted_data = await processing_chain.ainvoke(
+            {
+                "current_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "category": [e.value for e in CategoryEnum],
+                "source": [e.value for e in SourceEnum],
+                "user_input": user_input,
+            }
+        )
+
+        return extracted_data
+
+    except ConnectionError as e:
+        logger.error(f"Failed to connect to Ollama service: {e}")
+        raise OllamaServiceError(f"Ollama service is unreachable: {str(e)}")
+
+    except Exception as e:
+        logger.error(f"Error during AI processing: {e}")
+        raise AIProcessingError(f"The AI could not process the message: {str(e)}")

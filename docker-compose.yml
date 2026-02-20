@@ -2,17 +2,23 @@ services:
   lio-agent-python:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: lio-agent-app-python
     restart: always
+    volumes:
+      - .:/app
+      - /app/.venv
+    ports:
+      - "5679:5679"
     environment:
+      - DEBUG_MODE=false
       - DB_NAME=${POSTGRES_DB}
       - DB_USER=${POSTGRES_USER}
       - DB_PASS=${POSTGRES_PW}
       - DB_HOST=postgres
       - DB_PORT=5432
-      - TOKEN_BOT={TOKEN_TELEGRAM_LIO}
-      - MAX_CONCURRENCY={MAX_CONCURRENCY}
+      - TOKEN_BOT=${TOKEN_TELEGRAM_LIO}
+      - MAX_CONCURRENCY=${MAX_CONCURRENCY}
     depends_on:
       postgres:
         condition: service_healthy
@@ -28,7 +34,7 @@ services:
     volumes:
       - lio_ollama_data:/root/.ollama
     healthcheck:
-      test: ["CMD", "ollama", "list"]
+      test: [ "CMD", "ollama", "list" ]
       interval: 10s
       timeout: 10s
       start_period: 20s
@@ -44,7 +50,7 @@ services:
     #           count: 1
     #           capabilities: [gpu]
 
-  # Contenedor auxiliar para descargar el modelo
+    # Contenedor auxiliar para descargar el modelo
   ollama-pull-model:
     image: curlimages/curl:latest
     container_name: ollama-pull-model
@@ -68,14 +74,13 @@ services:
     volumes:
       - lio_postgres_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       start_period: 10s
       retries: 5
     networks:
       - lio_agent_net
-
 
 volumes:
   lio_ollama_data:
