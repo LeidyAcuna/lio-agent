@@ -45,6 +45,19 @@ class ProcessingQueue:
         """
         return await self.queue.get()
 
+    async def is_empty(self) -> bool:
+        """Checks if the queue is empty."""
+        return self.queue.empty()
+
+    async def size(self) -> int:
+        """Returns the number of messages in the queue."""
+        return self.queue.qsize()
+
+    async def clear(self) -> None:
+        """Clears all messages from the queue."""
+        while not self.queue.empty():
+            await self.queue.get()
+
     def task_done(self) -> None:
         """Signals that a previously enqueued task is complete."""
         self.queue.task_done()

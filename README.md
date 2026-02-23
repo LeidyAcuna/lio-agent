@@ -19,6 +19,8 @@ An asynchronous Telegram bot designed to streamline personal finance tracking. L
 - **Validation**: `Pydantic`
 - **Infrastructure**: `Docker` & `Docker Compose`
 
+![Tech Stack Architecture](docs/arq.png)
+
 ## 🏗 Architecture Overview
 
 The system operates as a non-blocking pipeline:

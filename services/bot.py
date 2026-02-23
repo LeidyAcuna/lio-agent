@@ -20,7 +20,7 @@ class TelegramBot:
         """
         Initializes the Telegram application using the provided bot token.
         """
-        self.app = ApplicationBuilder().token(settings.TOKEN_TELEGRAM_BOT).build()
+        self.app = ApplicationBuilder().token(settings.TELEGRAM_BOT_TOKEN).build()
 
     def setup_handlers(self, queue_manager: ProcessingQueue) -> None:
         """

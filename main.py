@@ -4,6 +4,7 @@ import os
 
 import debugpy
 
+from core.config import validate_settings
 from core.exceptions.base import AppError
 from repository.expenses import ExpenseRepository
 from services.bot import TelegramBot
@@ -28,7 +29,7 @@ async def run_application():
     """
     try:
         logger.info("Initializing Lio-Agent core services...")
-
+        validate_settings()
         # Initialize Infrastructure
         expense_repository = ExpenseRepository()
         await expense_repository.db.initialize()

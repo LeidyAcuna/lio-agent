@@ -17,7 +17,7 @@ services:
       - DB_PASS=${POSTGRES_PW}
       - DB_HOST=postgres
       - DB_PORT=5432
-      - TOKEN_BOT=${TOKEN_TELEGRAM_LIO}
+      - BOT_TOKEN=${TOKEN_TELEGRAM_LIO}
       - MAX_CONCURRENCY=${MAX_CONCURRENCY}
     depends_on:
       postgres:
