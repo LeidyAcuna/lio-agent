@@ -1,3 +1,10 @@
+"""
+Integration tests for database stress testing.
+
+This module evaluates the system's performance and robustness by simulating
+high-concurrency write operations to a real PostgreSQL database.
+"""
+
 import asyncio
 import time
 
@@ -9,12 +16,18 @@ from src.repository.expenses import ExpenseRepository
 
 @pytest.mark.asyncio
 async def test_stress_db_insertion():
+    """
+    Measures the database insertion speed under high concurrency.
+
+    This test executes 1000 parallel insert operations to verify that the
+    connection pool and repository can handle heavy loads without corruption.
+    """
+    # Arrange: Setup repository and clean test environment
     TOTAL_MESSAGES = 1000
     manager = ExpenseRepository()
     await manager.db.initialize()
     await manager.setup_schema()
 
-    # 1. Clean DB test
     async with manager.db.get_connection() as conn:
         async with conn.cursor() as cur:
             await cur.execute("DELETE FROM expenses")
@@ -22,7 +35,7 @@ async def test_stress_db_insertion():
     tasks = []
     start_time = time.perf_counter()
 
-    # 2. Insert 1000 messages
+    # Act: Dispatch 1000 insertions in parallel
     for i in range(TOTAL_MESSAGES):
         expense = Expense(
             total=100.0,
@@ -33,18 +46,18 @@ async def test_stress_db_insertion():
         )
         tasks.append(manager.create(i, expense))
 
-    # Wait for all promises to finish
+    # Wait for all asynchronous tasks (promises) to finish
     await asyncio.gather(*tasks)
 
     end_time = time.perf_counter()
     duration = end_time - start_time
 
-    # 3. Assert: Robustness checks
+    # Assert: Verify data integrity and performance metrics
     print(f"\n🚀 Processed {TOTAL_MESSAGES} messages in {duration:.2f} seconds")
     print(f"⚡ Speed: {TOTAL_MESSAGES / duration:.2f} messages/second")
 
-    # Verify that they are actually in the DB
     count = await manager.get_total_count()
     assert count >= TOTAL_MESSAGES
 
+    # Cleanup: Graceful shutdown
     await manager.db.shutdown()

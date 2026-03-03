@@ -1,3 +1,10 @@
+"""
+End-to-End (E2E) integration tests for the Lio-Agent.
+
+These tests validate the entire processing pipeline: message ingestion,
+AI extraction via Ollama, and final persistence in PostgreSQL.
+"""
+
 import asyncio
 import logging
 import time
@@ -13,6 +20,10 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture
 def test_cases():
+    """
+    Returns a mix of valid financial messages and informal chat to test
+    LLM extraction and filtering capabilities.
+    """
     return [
         "Gasté 150000 en comida ayer pagando con Bancolombia Leidy",
         "Compré 2 cafés en Juan Valdez por 15000 pesos usando Nubank Yamile",
@@ -32,15 +43,25 @@ def test_cases():
 
 @pytest.fixture
 def mock_telegram_app(mocker):
-    mock_telegram_app = mocker.Mock()
-    mock_telegram_app.bot = mocker.Mock()
-    mock_telegram_app.bot.send_message = mocker.AsyncMock()
-    return mock_telegram_app
+    """
+    Mocks the Telegram application to avoid real network calls during E2E tests,
+    while still allowing the bot to 'reply' to simulated messages.
+    """
+    mock_app = mocker.Mock()
+    mock_app.bot = mocker.Mock()
+    mock_app.bot.send_message = mocker.AsyncMock()
+    return mock_app
 
 
 @pytest.mark.asyncio
 async def test_e2e_flow(test_cases, mock_telegram_app):
+    """
+    Tests the full business flow: Input -> Queue -> AI -> Database.
 
+    Validates that NLP extraction correctly identifies expenses and
+    ignores non-financial communication.
+    """
+    # Arrange: Initialize repository, queue, and background workers
     expense_repository = ExpenseRepository()
     await expense_repository.db.initialize()
     await expense_repository.setup_schema()
@@ -53,15 +74,14 @@ async def test_e2e_flow(test_cases, mock_telegram_app):
     )
     logger.info(f"Background processing started with {len(worker_tasks)} workers.")
 
-    # 1. Clean DB test
+    # Clean test database
     async with expense_repository.db.get_connection() as conn:
         async with conn.cursor() as cur:
             await cur.execute("DELETE FROM expenses")
 
-    tasks = []
     start_time = time.perf_counter()
 
-    # 2. Insert 1000 messages
+    # Act: Enqueue all test messages
     for i, text in enumerate(test_cases):
         domain_message = Message(
             user_id=2061932699,
@@ -71,17 +91,19 @@ async def test_e2e_flow(test_cases, mock_telegram_app):
         )
         await queue_manager.enqueue(message=domain_message)
 
+    # Wait for the queue to be fully processed by the workers
     await queue_manager.join()
 
     end_time = time.perf_counter()
     duration = end_time - start_time
 
-    # 3. Assert: Robustness checks
+    # Assert: Verify total valid records in DB and performance
     logger.info(f"\n🚀 Processed {len(test_cases)} messages in {duration:.2f} seconds")
     logger.info(f"⚡ Speed: {len(test_cases) / duration:.2f} messages/second")
 
-    # Verify that they are actually in the DB
     count = await expense_repository.get_total_count()
+    # 9 messages should be valid expenses, 4 should be filtered out
     assert count == 9
 
+    # Cleanup: Shutdown DB connections
     await expense_repository.db.shutdown()
