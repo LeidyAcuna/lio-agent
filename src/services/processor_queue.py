@@ -2,11 +2,11 @@ import asyncio
 import logging
 from typing import Callable, List
 
-from core.config import get_settings
-from core.exceptions.base import AppError
-from models.message import Message
-from repository.expenses import ExpenseRepository
-from services.orchestrator import process_expense_message
+from src.core.config import get_settings
+from src.core.exceptions import AppError
+from src.models.message import Message
+from src.repository.expenses import ExpenseRepository
+from src.services.orchestrator import process_expense_message
 
 settings = get_settings()
 
@@ -44,6 +44,23 @@ class ProcessingQueue:
             Message: The next message to process.
         """
         return await self.queue.get()
+
+    async def is_empty(self) -> bool:
+        """Checks if the queue is empty."""
+        return self.queue.empty()
+
+    async def size(self) -> int:
+        """Returns the number of messages in the queue."""
+        return self.queue.qsize()
+
+    async def clear(self) -> None:
+        """Clears all messages from the queue."""
+        while not self.queue.empty():
+            await self.queue.get()
+
+    async def join(self) -> None:
+        """Waits for all messages in the queue to be processed."""
+        await self.queue.join()
 
     def task_done(self) -> None:
         """Signals that a previously enqueued task is complete."""

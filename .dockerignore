@@ -4,3 +4,7 @@ __pycache__/
 .git/
 .uv/
 .env
+.pytest_cache/
+.vscode/
+.env.test
+tests/logs

@@ -1,5 +1,7 @@
 # Python-generated files
 __pycache__/
+.pytest_cache/
+.vscode/
 *.py[oc]
 build/
 dist/
@@ -9,4 +11,6 @@ wheels/
 # Virtual environments
 .venv
 .env
+.env.test
 text.txt
+tests/logs

@@ -4,10 +4,11 @@ import os
 
 import debugpy
 
-from core.exceptions.base import AppError
-from repository.expenses import ExpenseRepository
-from services.bot import TelegramBot
-from services.processor_queue import ProcessingQueue, start_worker_tasks
+from src.core.config import validate_settings
+from src.core.exceptions import AppError
+from src.repository.expenses import ExpenseRepository
+from src.services.bot import TelegramBot
+from src.services.processor_queue import ProcessingQueue, start_worker_tasks
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -28,7 +29,7 @@ async def run_application():
     """
     try:
         logger.info("Initializing Lio-Agent core services...")
-
+        validate_settings()
         # Initialize Infrastructure
         expense_repository = ExpenseRepository()
         await expense_repository.db.initialize()

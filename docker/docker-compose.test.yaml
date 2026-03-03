@@ -1,33 +1,57 @@
 services:
-  lio-agent-python:
+  lio-agent-python_test:
     build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: lio-agent-app-python
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+    container_name: lio-agent-app-python_test
     restart: always
     volumes:
-      - .:/app
+      - ../src:/app/src
       - /app/.venv
     ports:
       - "5679:5679"
     environment:
       - DEBUG_MODE=false
-      - DB_NAME=${POSTGRES_DB}
-      - DB_USER=${POSTGRES_USER}
-      - DB_PASS=${POSTGRES_PW}
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - TOKEN_BOT=${TOKEN_TELEGRAM_LIO}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PW=${POSTGRES_PW}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - TOKEN_TELEGRAM_LIO=${TOKEN_TELEGRAM_LIO}
       - MAX_CONCURRENCY=${MAX_CONCURRENCY}
+      - OLLAMA_URL=${OLLAMA_URL}
     depends_on:
-      postgres:
+      postgres_test:
         condition: service_healthy
       ollama:
         condition: service_healthy
     env_file:
-      - .env
+      - ../tests/.env.test
     networks:
       - lio_agent_net
+
+  postgres_test:
+    image: postgres:18.1
+    container_name: lio_agent_postgres_db_test
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PASSWORD=${POSTGRES_PW}
+      - PGPORT=${POSTGRES_PORT}
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    volumes:
+      - lio_postgres_data_test:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+    networks:
+      - lio_agent_net
+
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
@@ -39,6 +63,8 @@ services:
       timeout: 10s
       start_period: 20s
       retries: 5
+    ports:
+      - "11434:11434"
     networks:
       - lio_agent_net
     # GPU NVIDIA
@@ -61,33 +87,12 @@ services:
     networks:
       - lio_agent_net
 
-  postgres:
-    image: postgres:18.1
-    container_name: lio_agent_postgres_db
-    restart: unless-stopped
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_PASSWORD=${POSTGRES_PW}
-    ports:
-      - "5434:5432"
-    volumes:
-      - lio_postgres_data:/var/lib/postgresql
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
-      interval: 10s
-      timeout: 5s
-      start_period: 10s
-      retries: 5
-    networks:
-      - lio_agent_net
-
 volumes:
   lio_ollama_data:
     external: true
-
-  lio_postgres_data:
+  lio_postgres_data_test:
     external: true
+
 networks:
   lio_agent_net:
     external: true

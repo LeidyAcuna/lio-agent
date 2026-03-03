@@ -1,9 +1,9 @@
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 
-from core.config import get_settings
-from services.orchestrator import handle_telegram_update
-from services.processor_queue import ProcessingQueue
+from src.core.config import get_settings
+from src.services.orchestrator import handle_telegram_update
+from src.services.processor_queue import ProcessingQueue
 
 settings = get_settings()
 
@@ -20,7 +20,7 @@ class TelegramBot:
         """
         Initializes the Telegram application using the provided bot token.
         """
-        self.app = ApplicationBuilder().token(settings.TOKEN_TELEGRAM_BOT).build()
+        self.app = ApplicationBuilder().token(settings.TELEGRAM_BOT_TOKEN).build()
 
     def setup_handlers(self, queue_manager: ProcessingQueue) -> None:
         """

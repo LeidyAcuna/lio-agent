@@ -4,6 +4,7 @@ FROM python:3.14-slim-trixie
 COPY --from=ghcr.io/astral-sh/uv:0.9.26 /uv /uvx /bin/
 
 ENV UV_COMPILE_BYTECODE=1 \
+    UV_NO_DEV=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
@@ -15,10 +16,10 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-install-project
 # Copy the project into the image
 
-COPY . .
+COPY src/ ./src/
 
 #Install project
 RUN uv sync --frozen
 
 
-CMD ["uv", "run", "python", "main.py"]
+CMD ["uv", "run", "python", "src/main.py"]

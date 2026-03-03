@@ -19,6 +19,8 @@ An asynchronous Telegram bot designed to streamline personal finance tracking. L
 - **Validation**: `Pydantic`
 - **Infrastructure**: `Docker` & `Docker Compose`
 
+![Tech Stack Architecture](docs/arq.png)
+
 ## 🏗 Architecture Overview
 
 The system operates as a non-blocking pipeline:
@@ -28,7 +30,58 @@ The system operates as a non-blocking pipeline:
 
 ## 🚦 Quick Start
 
-1. **Clone the repo** and set up your .env file with your Telegram Bot Token.
-2. **Run with Docker Compose**:
+1. **Clone the repo** and set up your `.env` file.
+2. **Start Dependencies**: Launch the infrastructure (PostgreSQL and Ollama) in the background:
    ```bash
-   docker compose up --build
+   docker compose --env-file .env -f docker/docker-compose.dev.yaml up -d postgres ollama ollama-pull-model
+   ```
+3. **Run Application**: Build and start the bot:
+   ```bash
+   docker compose --env-file .env -f docker/docker-compose.dev.yaml up --build lio-agent
+   ```
+
+## 🧪 Testing
+
+The project includes a comprehensive test suite to ensure reliability and performance.
+
+### Test Types
+- **Unit Tests**: Validate individual components (Queue logic, model parsing) in isolation using mocks.
+- **Integration (E2E) Tests**: Verify the full message pipeline (Telegram -> Queue -> AI -> DB) using real PostgreSQL and Ollama instances.
+- **Stress Tests**: Measure system throughput and stability under high-concurrency message loads.
+
+### Running Tests
+
+#### 1. Unit Tests
+To run unit tests in isolation (no external dependencies required):
+```bash
+uv run pytest tests/unit/
+```
+
+#### 2. Integration & E2E Tests
+These tests require the infrastructure (DB and AI) to be running.
+1. **Start Test Infrastructure**:
+   ```bash
+   docker compose --env-file tests/.env.test -f docker/docker-compose.test.yaml up -d
+   ```
+2. **Run Integration Suite**:
+   ```bash
+   uv run pytest tests/integration/test_e2e_flow.py -s --log-cli-level=INFO
+   ```
+*Note: All execution logs are automatically saved to `tests/logs/test_run.log` for detailed inspection.*
+
+### 🚀 E2E Flow Explanation
+The End-to-End test simulates a real-world scenario where multiple users send natural language messages to the bot. It validates:
+1. **Message Ingestion**: Correct handling of incoming Telegram updates.
+2. **AI Processing**: Llama 3.1 correctly identifies amounts, categories, and payment methods.
+3. **Data Persistence**: Successful storage in the PostgreSQL database.
+4. **Filtering**: Ensuring non-financial messages (e.g., "Hola") are correctly ignored.
+
+You can find a complete execution log example in the root file: `test_example_e2e_flow.log`.
+
+## � Author
+
+- **Leidy Acuña** - [GitHub](https://github.com/LeidyAcuna)
+
+## �📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
