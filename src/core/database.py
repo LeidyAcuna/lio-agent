@@ -4,9 +4,9 @@ from typing import AsyncIterator
 import psycopg
 from psycopg_pool import AsyncConnectionPool
 
-from core.config import get_settings
-from core.cursor import LoggingCursor
-from core.exceptions.base import DatabaseConnectionError
+from src.core.config import get_settings
+from src.core.cursor import LoggingCursor
+from src.core.exceptions import DatabaseConnectionError
 
 settings = get_settings()
 
@@ -25,7 +25,7 @@ class DatabaseManager:
 
         The pool is configured with a custom 'LoggingCursor' factory and is not opened immediately.
         """
-        conn_str = f"dbname={settings.POSTGRES_DB} user={settings.POSTGRES_USER} password={settings.POSTGRES_PW} host={settings.SERVICE_POSTGRES_HOST} port={int(settings.SERVICE_POSTGRES_PORT)}"
+        conn_str = f"dbname={settings.POSTGRES_DB} user={settings.POSTGRES_USER} password={settings.POSTGRES_PW} host={settings.POSTGRES_HOST} port={int(settings.POSTGRES_PORT)}"
         self.conn_pg_pool = AsyncConnectionPool(
             min_size=2,
             max_size=10,

@@ -5,9 +5,9 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 
-from core.config import get_settings
-from core.exceptions.base import AIProcessingError, OllamaServiceError
-from models.expense import CategoryEnum, Expense, SourceEnum
+from src.core.config import get_settings
+from src.core.exceptions import AIProcessingError, OllamaServiceError
+from src.models.expense import CategoryEnum, Expense, SourceEnum
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
@@ -63,7 +63,7 @@ async def extract_expense_from_text(user_input: str) -> Expense:
     )
 
     # Initialize the LLM (Ollama)
-    llm = ChatOllama(model="llama3.1", temperature=0, base_url="http://ollama:11434")
+    llm = ChatOllama(model="llama3.1", temperature=0, base_url=settings.OLLAMA_URL)
 
     output_parser = PydanticOutputParser(pydantic_object=Expense)
 

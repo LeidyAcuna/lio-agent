@@ -3,10 +3,10 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from core.exceptions.base import AppError
-from models.message import Message
-from repository.expenses import ExpenseRepository
-from services.llm import extract_expense_from_text
+from src.core.exceptions import AppError
+from src.models.message import Message
+from src.repository.expenses import ExpenseRepository
+from src.services.llm import extract_expense_from_text
 
 logger = logging.getLogger(__name__)
 

@@ -3,9 +3,9 @@ import logging
 
 import psycopg
 
-from core.database import DatabaseManager
-from core.exceptions.base import ConfigurationError, DatabaseError, DatabaseInsertError
-from models.expense import Expense
+from src.core.database import DatabaseManager
+from src.core.exceptions import ConfigurationError, DatabaseError, DatabaseInsertError
+from src.models.expense import Expense
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class ExpenseRepository:
         try:
 
             def read_sql() -> str:
-                with open("core/schema.sql", "r", encoding="utf-8") as file:
+                with open("src/core/schema.sql", "r", encoding="utf-8") as file:
                     return file.read()
 
             sql_script = await asyncio.to_thread(read_sql)
@@ -86,3 +86,24 @@ class ExpenseRepository:
         except psycopg.Error as error:
             logger.error(f"Failed to insert a new row in table, {error}")
             raise DatabaseInsertError(f"Failed to insert a new row in table {user_id}")
+
+    async def get_total_count(self) -> int:
+        """
+        Returns the total number of records in the expenses table.
+
+        Returns:
+            int: The total number of records in the expenses table.
+
+        Raises:
+            DatabaseError: A custom exception wrapped around database failures
+                                during insertion to provide domain-specific context.
+        """
+        try:
+            async with self.db.get_connection() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute("SELECT COUNT(*) FROM expenses")
+                    result = await cur.fetchone()
+                    return result[0] if result else 0
+        except psycopg.Error as error:
+            logger.error(f"Failed to get total count: {error}")
+            raise DatabaseError(f"Failed to get total count: {error}")

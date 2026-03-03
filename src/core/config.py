@@ -1,6 +1,6 @@
 import os
 
-from core.exceptions.base import ConfigurationError
+from src.core.exceptions import ConfigurationError
 
 
 class Settings:
@@ -11,13 +11,14 @@ class Settings:
     Telegram bot integration, and concurrency management.
     """
 
-    POSTGRES_USER: str = os.getenv("DB_USER")
-    POSTGRES_PW: str = os.getenv("DB_PASS")
-    POSTGRES_DB: str = os.getenv("DB_NAME")
-    SERVICE_POSTGRES_HOST: str = os.getenv("DB_HOST")
-    SERVICE_POSTGRES_PORT: str = os.getenv("DB_PORT")
-    TELEGRAM_BOT_TOKEN: str = os.getenv("BOT_TOKEN")
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER")
+    POSTGRES_PW: str = os.getenv("POSTGRES_PW")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB")
+    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST")
+    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT")
+    TELEGRAM_BOT_TOKEN: str = os.getenv("TOKEN_TELEGRAM_LIO")
     MAX_CONCURRENCY_QUEUE: str = os.getenv("MAX_CONCURRENCY")
+    OLLAMA_URL: str = os.getenv("OLLAMA_URL")
 
 
 _settings = Settings()

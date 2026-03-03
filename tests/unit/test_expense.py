@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 
-from models.expense import CategoryEnum, Expense, SourceEnum
+from src.models.expense import CategoryEnum, Expense, SourceEnum
 
 
 # Valid data for expense

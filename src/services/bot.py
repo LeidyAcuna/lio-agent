@@ -1,9 +1,9 @@
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 
-from core.config import get_settings
-from services.orchestrator import handle_telegram_update
-from services.processor_queue import ProcessingQueue
+from src.core.config import get_settings
+from src.services.orchestrator import handle_telegram_update
+from src.services.processor_queue import ProcessingQueue
 
 settings = get_settings()
 

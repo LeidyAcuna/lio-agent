@@ -1,14 +1,14 @@
 import pytest
 
-from core.config import Settings
-from models.message import Message
-from services.processor_queue import ProcessingQueue
+from src.core.config import Settings
+from src.models.message import Message
+from src.services.processor_queue import ProcessingQueue
 
 
 @pytest.fixture
 def mock_settings(mocker):
     """Mock settings for the test."""
-    mock_conf = mocker.patch("services.processor_queue.settings")
+    mock_conf = mocker.patch("src.services.processor_queue.settings")
     mock_conf.MAX_CONCURRENCY_QUEUE = "4"
     return mock_conf
 
