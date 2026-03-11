@@ -3,16 +3,19 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes
 
+from src.core.config import get_settings
 from src.core.exceptions import AppError
+from src.models.audit_log import AuditLog
 from src.models.message import Message
 from src.repository.expenses import ExpenseRepository
-from src.services.llm import extract_expense_from_text
+
+settings = get_settings()
 
 logger = logging.getLogger(__name__)
 
 
 async def process_expense_message(
-    expense_repository: ExpenseRepository, message: Message, telegram_app
+    expense_repository: ExpenseRepository, message: Message, telegram_app, llm_service
 ) -> None:
     """
     Coordinates the full flow of processing an expense message.
@@ -28,7 +31,9 @@ async def process_expense_message(
     """
     try:
         # Step 1: Extract data using IA
-        expense_data = await extract_expense_from_text(user_input=message.text)
+        expense_data = await llm_service.extract_expense_from_text(
+            user_input=message.text
+        )
 
         # Step 2: Save to database
         await expense_repository.create(user_id=message.user_id, expense=expense_data)
@@ -60,6 +65,7 @@ async def handle_telegram_update(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
     processing_queue,
+    audit_logs_repository,
 ) -> None:
     """
     Entry point for new Telegram messages.
@@ -78,9 +84,13 @@ async def handle_telegram_update(
     try:
         logger.info(f"New Telegram update received: ID {update.message.message_id}")
 
+        user_id = update.message.from_user.id
+        if user_id not in settings.ALLOWED_TELEGRAM_USER_IDS:
+            await handle_unauthorized_user(update, audit_logs_repository)
+            return
         # Canonicalize the TG message into our domain Message model
         domain_message = Message(
-            user_id=update.message.from_user.id,
+            user_id=user_id,
             chat_id=update.message.chat.id,
             message_id=update.message.message_id,
             text=update.message.text,
@@ -93,3 +103,33 @@ async def handle_telegram_update(
         await update.message.reply_text(
             "⚠️ Lo siento, tuve un problema interno al recibir tu mensaje. Intenta de nuevo en unos momentos."
         )
+
+
+async def handle_unauthorized_user(update: Update, audit_logs_repository) -> None:
+    """
+    Handles unauthorized user messages.
+
+    Args:
+        update (Update): The raw update from Telegram API.
+        audit_logs_repository: The audit logs repository.
+    """
+    try:
+        first_name = update.message.from_user.first_name or None
+        last_name = update.message.from_user.last_name or None
+        username = update.message.from_user.username or None
+
+        audit_log = AuditLog(
+            user_id=update.message.from_user.id,
+            fullname=f"{first_name} {last_name}" if first_name and last_name else None,
+            username=username,
+            chat_id=update.message.chat.id,
+            message_text=update.message.text,
+            message_date=update.message.date,
+        )
+        await audit_logs_repository.create(audit_log)
+        logger.warning(f"Unauthorized user: {update.message.from_user.id}")
+        await update.message.reply_text(
+            "⚠️ Lo siento, no tienes permiso para usar este bot."
+        )
+    except Exception as e:
+        logger.error(f"Error handling unauthorized user: {e}")

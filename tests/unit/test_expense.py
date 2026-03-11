@@ -59,7 +59,7 @@ def test_expense_validation_errors(valid_expense_data, field, value):
     data = valid_expense_data.copy()
     data[field] = value
 
-    # Act & Assert
+    # Act - Assert
     with pytest.raises(ValidationError):
         Expense(**data)
 

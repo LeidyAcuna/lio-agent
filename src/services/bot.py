@@ -2,6 +2,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 
 from src.core.config import get_settings
+from src.repository.audit_logs import AuditLogsRepository
 from src.services.orchestrator import handle_telegram_update
 from src.services.processor_queue import ProcessingQueue
 
@@ -22,7 +23,9 @@ class TelegramBot:
         """
         self.app = ApplicationBuilder().token(settings.TELEGRAM_BOT_TOKEN).build()
 
-    def setup_handlers(self, queue_manager: ProcessingQueue) -> None:
+    def setup_handlers(
+        self, queue_manager: ProcessingQueue, audit_logs_repository: AuditLogsRepository
+    ) -> None:
         """
         Registers handlers to process incoming Telegram messages.
 
@@ -35,7 +38,9 @@ class TelegramBot:
             update: Update, context: ContextTypes.DEFAULT_TYPE
         ) -> None:
             """Internal wrapper to bridge Telegram updates with the manager."""
-            await handle_telegram_update(update, context, queue_manager)
+            await handle_telegram_update(
+                update, context, queue_manager, audit_logs_repository
+            )
 
         # Handler for all text messages that are not commands
         text_handler = MessageHandler(

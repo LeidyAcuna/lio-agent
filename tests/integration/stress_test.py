@@ -10,6 +10,7 @@ import time
 
 import pytest
 
+from src.core.database import DatabaseManager
 from src.models.expense import CategoryEnum, Expense, SourceEnum
 from src.repository.expenses import ExpenseRepository
 
@@ -24,11 +25,13 @@ async def test_stress_db_insertion():
     """
     # Arrange: Setup repository and clean test environment
     TOTAL_MESSAGES = 1000
-    manager = ExpenseRepository()
-    await manager.db.initialize()
-    await manager.setup_schema()
+    db = DatabaseManager()
+    await db.initialize()
 
-    async with manager.db.get_connection() as conn:
+    expense_repository = ExpenseRepository(db=db)
+    await expense_repository.setup_schema()
+
+    async with db.get_connection() as conn:
         async with conn.cursor() as cur:
             await cur.execute("DELETE FROM expenses")
 
@@ -44,7 +47,7 @@ async def test_stress_db_insertion():
             description="Stress test",
             source=SourceEnum.efectivo_casa,
         )
-        tasks.append(manager.create(i, expense))
+        tasks.append(expense_repository.create(i, expense))
 
     # Wait for all asynchronous tasks (promises) to finish
     await asyncio.gather(*tasks)
@@ -56,8 +59,8 @@ async def test_stress_db_insertion():
     print(f"\n🚀 Processed {TOTAL_MESSAGES} messages in {duration:.2f} seconds")
     print(f"⚡ Speed: {TOTAL_MESSAGES / duration:.2f} messages/second")
 
-    count = await manager.get_total_count()
+    count = await expense_repository.get_total_count()
     assert count >= TOTAL_MESSAGES
 
     # Cleanup: Graceful shutdown
-    await manager.db.shutdown()
+    await db.shutdown()

@@ -21,7 +21,7 @@ def mock_settings(mocker):
     depend on external environment variables.
     """
     mock_conf = mocker.patch("src.services.processor_queue.settings")
-    mock_conf.MAX_CONCURRENCY_QUEUE = "4"
+    mock_conf.MAX_CONCURRENCY_QUEUE = 4
     return mock_conf
 
 
@@ -60,7 +60,7 @@ async def test_add_message_to_queue(message_data, processing_queue):
         await processing_queue.enqueue(message_data)
 
     # Assert
-    assert await processing_queue.size() == total_to_add
+    assert processing_queue.size() == total_to_add
 
     # Cleanup
     await processing_queue.clear()
@@ -78,7 +78,7 @@ async def test_remove_message_from_queue(message_data, processing_queue):
     await processing_queue.dequeue()
 
     # Assert
-    assert await processing_queue.is_empty() is True
+    assert processing_queue.is_empty() is True
 
     # Cleanup
     await processing_queue.clear()

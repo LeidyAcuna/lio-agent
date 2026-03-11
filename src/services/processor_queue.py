@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Callable, List
+from typing import List
 
 from src.core.config import get_settings
 from src.core.exceptions import AppError
@@ -24,7 +24,7 @@ class ProcessingQueue:
     def __init__(self) -> None:
         """Initializes the queue and limiting semaphore."""
         self.queue: asyncio.Queue[Message] = asyncio.Queue()
-        self.semaphore = asyncio.Semaphore(int(settings.MAX_CONCURRENCY_QUEUE))
+        self.semaphore = asyncio.Semaphore(settings.MAX_CONCURRENCY_QUEUE)
 
     async def enqueue(self, message: Message) -> None:
         """
@@ -45,11 +45,11 @@ class ProcessingQueue:
         """
         return await self.queue.get()
 
-    async def is_empty(self) -> bool:
+    def is_empty(self) -> bool:
         """Checks if the queue is empty."""
         return self.queue.empty()
 
-    async def size(self) -> int:
+    def size(self) -> int:
         """Returns the number of messages in the queue."""
         return self.queue.qsize()
 
@@ -72,6 +72,7 @@ async def message_worker(
     queue_manager: ProcessingQueue,
     expense_repository: ExpenseRepository,
     telegram_app,
+    llm_service,
 ) -> None:
     """
     Background worker that consumes and processes messages from the queue.
@@ -94,6 +95,7 @@ async def message_worker(
                     expense_repository=expense_repository,
                     message=message,
                     telegram_app=telegram_app,
+                    llm_service=llm_service,
                 )
 
                 logger.info(f"Worker {worker_id} finished message {message.message_id}")
@@ -107,7 +109,10 @@ async def message_worker(
 
 
 async def start_worker_tasks(
-    queue_manager: ProcessingQueue, expense_repository: ExpenseRepository, telegram_app
+    queue_manager: ProcessingQueue,
+    expense_repository: ExpenseRepository,
+    telegram_app,
+    llm_service,
 ) -> List[asyncio.Task]:
     """
     Spawns multiple worker tasks based on concurrency settings.
@@ -121,7 +126,7 @@ async def start_worker_tasks(
         List[asyncio.Task]: A list of the created background tasks.
     """
     worker_tasks = []
-    concurrency = int(settings.MAX_CONCURRENCY_QUEUE)
+    concurrency = settings.MAX_CONCURRENCY_QUEUE
 
     for i in range(concurrency):
         task = asyncio.create_task(
@@ -130,6 +135,7 @@ async def start_worker_tasks(
                 queue_manager=queue_manager,
                 expense_repository=expense_repository,
                 telegram_app=telegram_app,
+                llm_service=llm_service,
             )
         )
         worker_tasks.append(task)

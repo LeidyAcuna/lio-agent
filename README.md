@@ -12,7 +12,7 @@ An asynchronous Telegram bot designed to streamline personal finance tracking. L
 
 ## 🛠 Tech Stack
 
-- **Languaje**: Python 3.14+
+- **Language**: Python 3.14+
 - **Frameworks**: `python-telegram-bot`, `LangChain`
 - **AI Inference**: `Ollama`
 - **Database**: `PostgreSQL` with `psycopg3` (Connection Pool)
@@ -65,6 +65,7 @@ These tests require the infrastructure (DB and AI) to be running.
    ```
 2. **Run Integration Suite**:
    ```bash
+   uv run pytest tests/integration/stress_test.py -s
    uv run pytest tests/integration/test_e2e_flow.py -s --log-cli-level=INFO
    ```
 *Note: All execution logs are automatically saved to `tests/logs/test_run.log` for detailed inspection.*
@@ -78,10 +79,10 @@ The End-to-End test simulates a real-world scenario where multiple users send na
 
 You can find a complete execution log example in the root file: `test_example_e2e_flow.log`.
 
-## � Author
+## Author
 
 - **Leidy Acuña** - [GitHub](https://github.com/LeidyAcuna)
 
-## �📄 License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

@@ -11,8 +11,10 @@ import time
 
 import pytest
 
+from src.core.database import DatabaseManager
 from src.models.message import Message
 from src.repository.expenses import ExpenseRepository
+from src.services.llm import LlmService
 from src.services.processor_queue import ProcessingQueue, start_worker_tasks
 
 logger = logging.getLogger(__name__)
@@ -62,15 +64,19 @@ async def test_e2e_flow(test_cases, mock_telegram_app):
     ignores non-financial communication.
     """
     # Arrange: Initialize repository, queue, and background workers
-    expense_repository = ExpenseRepository()
-    await expense_repository.db.initialize()
+    db = DatabaseManager()
+    await db.initialize()
+
+    expense_repository = ExpenseRepository(db=db)
     await expense_repository.setup_schema()
     queue_manager = ProcessingQueue()
+    llm_service = LlmService()
 
     worker_tasks = await start_worker_tasks(
         queue_manager=queue_manager,
         expense_repository=expense_repository,
         telegram_app=mock_telegram_app,
+        llm_service=llm_service,
     )
     logger.info(f"Background processing started with {len(worker_tasks)} workers.")
 

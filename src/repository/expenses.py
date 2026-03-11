@@ -18,17 +18,20 @@ class ExpenseRepository:
     interface for expense-related data operations.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, db: DatabaseManager) -> None:
         """
-        Initializes the repository with a DatabaseManager instance to handle connections.
+        Initializes the repository with a shared DatabaseManager instance.
+
+        Args:
+            db (DatabaseManager): The shared database manager.
         """
-        self.db = DatabaseManager()
+        self.db = db
 
     async def setup_schema(self) -> None:
         """
         Sets up the database structure required for the repository.
 
-        Reads the SQL definitions from 'core/table.sql' and applies them
+        Reads the SQL definitions from 'src/core/schema_expenses.sql' and applies them
         asynchronously. This is invoked during application initialization.
 
         Raises:
@@ -38,7 +41,9 @@ class ExpenseRepository:
         try:
 
             def read_sql() -> str:
-                with open("src/core/schema.sql", "r", encoding="utf-8") as file:
+                with open(
+                    "src/core/schema_expenses.sql", "r", encoding="utf-8"
+                ) as file:
                     return file.read()
 
             sql_script = await asyncio.to_thread(read_sql)
@@ -50,7 +55,9 @@ class ExpenseRepository:
             logger.info("Database schema initialized successfully.")
 
         except OSError as e:
-            raise ConfigurationError(f"SQL file core/table.sql not found: {e}")
+            raise ConfigurationError(
+                f"SQL file core/schema_expenses.sql not found: {e}"
+            )
         except psycopg.Error as e:
             raise DatabaseError(f"Failed to execute schema initialization: {e}")
 
