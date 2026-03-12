@@ -7,8 +7,8 @@ import debugpy
 from src.core.config import validate_settings
 from src.core.database import DatabaseManager
 from src.core.exceptions import AppError
-from src.repository.audit_logs import AuditLogsRepository
-from src.repository.expenses import ExpenseRepository
+from src.repositories.audit_logs import AuditLogsRepository
+from src.repositories.expenses import ExpenseRepository
 from src.services.bot import TelegramBot
 from src.services.llm import LlmService
 from src.services.processor_queue import ProcessingQueue, start_worker_tasks

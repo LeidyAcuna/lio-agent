@@ -5,7 +5,7 @@ import psycopg
 
 from src.core.database import DatabaseManager
 from src.core.exceptions import ConfigurationError, DatabaseError, DatabaseInsertError
-from src.models.audit_log import AuditLog
+from src.models.audit_log import AuditLog, AuditLogInDB
 
 logger = logging.getLogger(__name__)
 
@@ -94,3 +94,36 @@ class AuditLogsRepository:
             raise DatabaseInsertError(
                 f"Failed to insert a new audit log in table {audit_log.user_id}"
             )
+
+    async def get_last_audit_log(self) -> AuditLogInDB:
+        """
+        Returns the last audit log record in the audit_logs table.
+
+        Returns:
+            AuditLog: The last audit log record in the audit_logs table.
+
+        Raises:
+            DatabaseError: A custom exception wrapped around database failures
+                                during insertion to provide domain-specific context.
+        """
+        try:
+            async with self.db.get_connection() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute(
+                        "SELECT * FROM public.audit_logs ORDER BY created_at desc limit 1"
+                    )
+                    result = await cur.fetchone()
+                    audit_log = AuditLogInDB(
+                        id=result[0],
+                        user_id=result[1],
+                        fullname=result[2],
+                        username=result[3],
+                        chat_id=result[4],
+                        message_text=result[5],
+                        message_date=result[6],
+                        created_at=result[7],
+                    )
+                    return audit_log
+        except psycopg.Error as error:
+            logger.error(f"Failed to get last audit log: {error}")
+            raise DatabaseError(f"Failed to get last audit log: {error}")

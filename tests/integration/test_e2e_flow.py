@@ -13,7 +13,7 @@ import pytest
 
 from src.core.database import DatabaseManager
 from src.models.message import Message
-from src.repository.expenses import ExpenseRepository
+from src.repositories.expenses import ExpenseRepository
 from src.services.llm import LlmService
 from src.services.processor_queue import ProcessingQueue, start_worker_tasks
 

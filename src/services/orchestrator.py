@@ -7,7 +7,7 @@ from src.core.config import get_settings
 from src.core.exceptions import AppError
 from src.models.audit_log import AuditLog
 from src.models.message import Message
-from src.repository.expenses import ExpenseRepository
+from src.repositories.expenses import ExpenseRepository
 
 settings = get_settings()
 

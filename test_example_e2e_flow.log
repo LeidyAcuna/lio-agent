@@ -1,13 +1,13 @@
-2026-03-02 19:31:43 [INFO] src.core.cursor: Executing SQL: -- Table: public.expenses
+2026-03-11 19:04:20 [INFO] src.core.cursor: Executing SQL: -- Table: public.expenses
 
 CREATE TABLE IF NOT EXISTS public.expenses
 (
     id SERIAL NOT NULL,
     user_id bigint NOT NULL,
     completion_date timestamp without time zone NOT NULL DEFAULT now(),
-    category character varying(200) COLLATE pg_catalog."default" NOT NULL,
-    source character varying(255) COLLATE pg_catalog."default" NOT NULL,
-    description text COLLATE pg_catalog."default" NOT NULL,
+    category character varying(200) NOT NULL,
+    source character varying(255) NOT NULL,
+    description text NOT NULL,
     total numeric(10,2) NOT NULL DEFAULT 0,
     CONSTRAINT expenses_pkey PRIMARY KEY (id)
 )
@@ -17,160 +17,140 @@ TABLESPACE pg_default;
 ALTER TABLE IF EXISTS public.expenses
     OWNER to lio_admin;
 
-2026-03-02 19:31:43 [INFO] src.repository.expenses: Database schema initialized successfully.
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Spawned 4 background workers.
-2026-03-02 19:31:43 [INFO] test_e2e_flow: Background processing started with 4 workers.
-2026-03-02 19:31:43 [INFO] src.core.cursor: Executing SQL: DELETE FROM expenses
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Message 0 enqueued successfully.
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Message 1 enqueued successfully.
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Message 2 enqueued successfully.
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Message 3 enqueued successfully.
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Message 4 enqueued successfully.
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Message 5 enqueued successfully.
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Message 6 enqueued successfully.
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Message 7 enqueued successfully.
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Message 8 enqueued successfully.
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Message 9 enqueued successfully.
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Message 10 enqueued successfully.
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Message 11 enqueued successfully.
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Message 12 enqueued successfully.
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Worker worker-0 processing message 0
-2026-03-02 19:31:43 [INFO] src.services.llm: Invoking LLM for expense extraction...
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Worker worker-1 processing message 1
-2026-03-02 19:31:43 [INFO] src.services.llm: Invoking LLM for expense extraction...
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Worker worker-2 processing message 2
-2026-03-02 19:31:43 [INFO] src.services.llm: Invoking LLM for expense extraction...
-2026-03-02 19:31:43 [INFO] src.services.processor_queue: Worker worker-3 processing message 3
-2026-03-02 19:31:43 [INFO] src.services.llm: Invoking LLM for expense extraction...
-2026-03-02 19:32:14 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
-2026-03-02 19:32:33 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
-                        values (2061932699, '2026-03-02 19:31:43'::timestamp, 'Alimentación y aseo', 'Nubank Yamile', 'Compré 2 cafés en Juan Valdez', 15000.0)
-2026-03-02 19:32:33 [INFO] src.repository.expenses: New row was inserted successfully!
-2026-03-02 19:32:33 [INFO] src.services.orchestrator: Successfully processed message 1 for user 2061932699
-2026-03-02 19:32:33 [INFO] src.services.processor_queue: Worker worker-1 finished message 1
-2026-03-02 19:32:33 [INFO] src.services.processor_queue: Worker worker-1 processing message 4
-2026-03-02 19:32:33 [INFO] src.services.llm: Invoking LLM for expense extraction...
-2026-03-02 19:32:35 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
-2026-03-02 19:32:52 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
-                        values (2061932699, '2026-03-02 19:31:43'::timestamp, 'Pagos', 'Bancolombia Leidy', 'PAGO ARRIENDO MARZO', 1200000.0)
-2026-03-02 19:32:52 [INFO] src.repository.expenses: New row was inserted successfully!
-2026-03-02 19:32:52 [INFO] src.services.orchestrator: Successfully processed message 2 for user 2061932699
-2026-03-02 19:32:52 [INFO] src.services.processor_queue: Worker worker-2 finished message 2
-2026-03-02 19:32:52 [INFO] src.services.processor_queue: Worker worker-2 processing message 5
-2026-03-02 19:32:52 [INFO] src.services.llm: Invoking LLM for expense extraction...
-2026-03-02 19:32:54 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
-2026-03-02 19:33:09 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
-                        values (2061932699, '2026-03-02 19:31:43'::timestamp, 'Alimentación y aseo', 'Bancolombia Leidy', 'Comida pagada ayer', 150000.0)
-2026-03-02 19:33:09 [INFO] src.repository.expenses: New row was inserted successfully!
-2026-03-02 19:33:09 [INFO] src.services.orchestrator: Successfully processed message 0 for user 2061932699
-2026-03-02 19:33:09 [INFO] src.services.processor_queue: Worker worker-0 finished message 0
-2026-03-02 19:33:09 [INFO] src.services.processor_queue: Worker worker-0 processing message 6
-2026-03-02 19:33:09 [INFO] src.services.llm: Invoking LLM for expense extraction...
-2026-03-02 19:33:12 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
-2026-03-02 19:33:28 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
-                        values (2061932699, '2026-03-02 19:31:43'::timestamp, 'Alimentación y aseo', 'Nubank Mercado', 'Gasto en víveres en supermercado', 250000.0)
-2026-03-02 19:33:28 [INFO] src.repository.expenses: New row was inserted successfully!
-2026-03-02 19:33:28 [INFO] src.services.orchestrator: Successfully processed message 3 for user 2061932699
-2026-03-02 19:33:28 [INFO] src.services.processor_queue: Worker worker-3 finished message 3
-2026-03-02 19:33:28 [INFO] src.services.processor_queue: Worker worker-3 processing message 7
-2026-03-02 19:33:28 [INFO] src.services.llm: Invoking LLM for expense extraction...
-2026-03-02 19:33:38 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
-2026-03-02 19:33:54 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
-                        values (2061932699, '2026-03-02 19:32:33'::timestamp, 'Alimentación y aseo', 'Nequi Leidy', 'Comida en un restaurante', 35000.0)
-2026-03-02 19:33:54 [INFO] src.repository.expenses: New row was inserted successfully!
-2026-03-02 19:33:54 [INFO] src.services.orchestrator: Successfully processed message 4 for user 2061932699
-2026-03-02 19:33:54 [INFO] src.services.processor_queue: Worker worker-1 finished message 4
-2026-03-02 19:33:54 [INFO] src.services.processor_queue: Worker worker-1 processing message 8
-2026-03-02 19:33:54 [INFO] src.services.llm: Invoking LLM for expense extraction...
-2026-03-02 19:34:04 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
-2026-03-02 19:34:18 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
-                        values (2061932699, '2026-03-02 19:32:52'::timestamp, 'Pagos', 'Efectivo', 'Pago recibo luz mes actual', 120000.0)
-2026-03-02 19:34:18 [INFO] src.repository.expenses: New row was inserted successfully!
-2026-03-02 19:34:18 [INFO] src.services.orchestrator: Successfully processed message 5 for user 2061932699
-2026-03-02 19:34:18 [INFO] src.services.processor_queue: Worker worker-2 finished message 5
-2026-03-02 19:34:18 [INFO] src.services.processor_queue: Worker worker-2 processing message 9
-2026-03-02 19:34:18 [INFO] src.services.llm: Invoking LLM for expense extraction...
-2026-03-02 19:34:28 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
-2026-03-02 19:34:44 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
-                        values (2061932699, '2026-03-02 19:33:09'::timestamp, 'Preferencias', 'Nubank Yamile', 'Compré blusa en Zara', 89900.0)
-2026-03-02 19:34:44 [INFO] src.repository.expenses: New row was inserted successfully!
-2026-03-02 19:34:44 [INFO] src.services.orchestrator: Successfully processed message 6 for user 2061932699
-2026-03-02 19:34:44 [INFO] src.services.processor_queue: Worker worker-0 finished message 6
-2026-03-02 19:34:44 [INFO] src.services.processor_queue: Worker worker-0 processing message 10
-2026-03-02 19:34:44 [INFO] src.services.llm: Invoking LLM for expense extraction...
-2026-03-02 19:34:55 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
-2026-03-02 19:35:11 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
-                        values (2061932699, '2026-03-02 19:33:28'::timestamp, 'Alimentación y aseo', 'Davivienda Yamile', 'Cena con novio en sushi', 180000.0)
-2026-03-02 19:35:11 [INFO] src.repository.expenses: New row was inserted successfully!
-2026-03-02 19:35:11 [INFO] src.services.orchestrator: Successfully processed message 7 for user 2061932699
-2026-03-02 19:35:11 [INFO] src.services.processor_queue: Worker worker-3 finished message 7
-2026-03-02 19:35:11 [INFO] src.services.processor_queue: Worker worker-3 processing message 11
-2026-03-02 19:35:11 [INFO] src.services.llm: Invoking LLM for expense extraction...
-2026-03-02 19:35:21 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
-2026-03-02 19:35:38 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
-                        values (2061932699, '2026-03-02 19:33:54'::timestamp, 'Preferencias', 'Efectivo', 'Compré zapatos en la tienda de la esquina', 95000.0)
-2026-03-02 19:35:38 [INFO] src.repository.expenses: New row was inserted successfully!
-2026-03-02 19:35:38 [INFO] src.services.orchestrator: Successfully processed message 8 for user 2061932699
-2026-03-02 19:35:38 [INFO] src.services.processor_queue: Worker worker-1 finished message 8
-2026-03-02 19:35:38 [INFO] src.services.processor_queue: Worker worker-1 processing message 12
-2026-03-02 19:35:38 [INFO] src.services.llm: Invoking LLM for expense extraction...
-2026-03-02 19:35:48 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
-2026-03-02 19:36:00 [ERROR] src.services.llm: Error during AI processing: Invalid json output: Lo siento, pero no tengo una respuesta para tu pregunta. ¿Puedo ayudarte a transformar un mensaje de texto en un formato estructurado según las reglas de categorización que se me han proporcionado?
+2026-03-11 19:04:20 [INFO] src.repositories.expenses: Database schema initialized successfully.
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Spawned 4 background workers.
+2026-03-11 19:04:20 [INFO] test_e2e_flow: Background processing started with 4 workers.
+2026-03-11 19:04:20 [INFO] src.core.cursor: Executing SQL: DELETE FROM expenses
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Message 0 enqueued successfully.
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Message 1 enqueued successfully.
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Message 2 enqueued successfully.
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Message 3 enqueued successfully.
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Message 4 enqueued successfully.
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Message 5 enqueued successfully.
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Message 6 enqueued successfully.
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Message 7 enqueued successfully.
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Message 8 enqueued successfully.
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Message 9 enqueued successfully.
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Message 10 enqueued successfully.
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Message 11 enqueued successfully.
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Message 12 enqueued successfully.
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Worker worker-0 processing message 0
+2026-03-11 19:04:20 [INFO] src.services.llm: Invoking LLM for expense extraction...
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Worker worker-1 processing message 1
+2026-03-11 19:04:20 [INFO] src.services.llm: Invoking LLM for expense extraction...
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Worker worker-2 processing message 2
+2026-03-11 19:04:20 [INFO] src.services.llm: Invoking LLM for expense extraction...
+2026-03-11 19:04:20 [INFO] src.services.processor_queue: Worker worker-3 processing message 3
+2026-03-11 19:04:20 [INFO] src.services.llm: Invoking LLM for expense extraction...
+2026-03-11 19:04:56 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
+2026-03-11 19:05:14 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
+                        values (2061932699, '2026-03-11 19:04:20'::timestamp, 'Alimentación y aseo', 'Nubank Yamile', 'Compré 2 cafés en Juan Valdez', 15000.0)
+2026-03-11 19:05:14 [INFO] src.repositories.expenses: New row was inserted successfully!
+2026-03-11 19:05:14 [INFO] src.services.orchestrator: Successfully processed message 1 for user 2061932699
+2026-03-11 19:05:14 [INFO] src.services.processor_queue: Worker worker-1 finished message 1
+2026-03-11 19:05:14 [INFO] src.services.processor_queue: Worker worker-1 processing message 4
+2026-03-11 19:05:14 [INFO] src.services.llm: Invoking LLM for expense extraction...
+2026-03-11 19:05:16 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
+2026-03-11 19:05:31 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
+                        values (2061932699, '2026-03-10 00:00:00'::timestamp, 'Alimentación y aseo', 'Bancolombia Leidy', 'Comida pagada ayer', 150000.0)
+2026-03-11 19:05:31 [INFO] src.repositories.expenses: New row was inserted successfully!
+2026-03-11 19:05:31 [INFO] src.services.orchestrator: Successfully processed message 0 for user 2061932699
+2026-03-11 19:05:31 [INFO] src.services.processor_queue: Worker worker-0 finished message 0
+2026-03-11 19:05:31 [INFO] src.services.processor_queue: Worker worker-0 processing message 5
+2026-03-11 19:05:31 [INFO] src.services.llm: Invoking LLM for expense extraction...
+2026-03-11 19:05:35 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
+2026-03-11 19:05:50 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
+                        values (2061932699, '2026-03-11 19:04:20'::timestamp, 'Pagos', 'Bancolombia Leidy', 'Pagué el arriendo de marzo', 1200000.0)
+2026-03-11 19:05:50 [INFO] src.repositories.expenses: New row was inserted successfully!
+2026-03-11 19:05:50 [INFO] src.services.orchestrator: Successfully processed message 2 for user 2061932699
+2026-03-11 19:05:50 [INFO] src.services.processor_queue: Worker worker-2 finished message 2
+2026-03-11 19:05:50 [INFO] src.services.processor_queue: Worker worker-2 processing message 6
+2026-03-11 19:05:50 [INFO] src.services.llm: Invoking LLM for expense extraction...
+2026-03-11 19:05:52 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
+2026-03-11 19:06:07 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
+                        values (2061932699, '2026-03-11 19:04:20'::timestamp, 'Alimentación y aseo', 'Nubank Mercado', 'Gasto en víveres en supermercado', 250000.0)
+2026-03-11 19:06:07 [INFO] src.repositories.expenses: New row was inserted successfully!
+2026-03-11 19:06:07 [INFO] src.services.orchestrator: Successfully processed message 3 for user 2061932699
+2026-03-11 19:06:07 [INFO] src.services.processor_queue: Worker worker-3 finished message 3
+2026-03-11 19:06:07 [INFO] src.services.processor_queue: Worker worker-3 processing message 7
+2026-03-11 19:06:07 [INFO] src.services.llm: Invoking LLM for expense extraction...
+2026-03-11 19:06:18 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
+2026-03-11 19:06:32 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
+                        values (2061932699, '2026-03-11 19:05:14'::timestamp, 'Alimentación y aseo', 'Nequi Leidy', 'Comida en restaurante', 35000.0)
+2026-03-11 19:06:32 [INFO] src.repositories.expenses: New row was inserted successfully!
+2026-03-11 19:06:32 [INFO] src.services.orchestrator: Successfully processed message 4 for user 2061932699
+2026-03-11 19:06:32 [INFO] src.services.processor_queue: Worker worker-1 finished message 4
+2026-03-11 19:06:32 [INFO] src.services.processor_queue: Worker worker-1 processing message 8
+2026-03-11 19:06:32 [INFO] src.services.llm: Invoking LLM for expense extraction...
+2026-03-11 19:06:42 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
+2026-03-11 19:06:55 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
+                        values (2061932699, '2026-03-11 19:05:31'::timestamp, 'Pagos', 'Efectivo', 'Pago recibo luz mes actual', 120000.0)
+2026-03-11 19:06:55 [INFO] src.repositories.expenses: New row was inserted successfully!
+2026-03-11 19:06:55 [INFO] src.services.orchestrator: Successfully processed message 5 for user 2061932699
+2026-03-11 19:06:55 [INFO] src.services.processor_queue: Worker worker-0 finished message 5
+2026-03-11 19:06:55 [INFO] src.services.processor_queue: Worker worker-0 processing message 9
+2026-03-11 19:06:55 [INFO] src.services.llm: Invoking LLM for expense extraction...
+2026-03-11 19:07:05 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
+2026-03-11 19:07:21 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
+                        values (2061932699, '2026-03-11 19:05:50'::timestamp, 'Preferencias', 'Nubank Yamile', 'Compré blusa en Zara', 89900.0)
+2026-03-11 19:07:21 [INFO] src.repositories.expenses: New row was inserted successfully!
+2026-03-11 19:07:21 [INFO] src.services.orchestrator: Successfully processed message 6 for user 2061932699
+2026-03-11 19:07:21 [INFO] src.services.processor_queue: Worker worker-2 finished message 6
+2026-03-11 19:07:21 [INFO] src.services.processor_queue: Worker worker-2 processing message 10
+2026-03-11 19:07:21 [INFO] src.services.llm: Invoking LLM for expense extraction...
+2026-03-11 19:07:31 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
+2026-03-11 19:07:46 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
+                        values (2061932699, '2026-03-11 19:06:07'::timestamp, 'Alimentación y aseo', 'Davivienda Yamile', 'Cena con novio en sushi', 180000.0)
+2026-03-11 19:07:46 [INFO] src.repositories.expenses: New row was inserted successfully!
+2026-03-11 19:07:46 [INFO] src.services.orchestrator: Successfully processed message 7 for user 2061932699
+2026-03-11 19:07:46 [INFO] src.services.processor_queue: Worker worker-3 finished message 7
+2026-03-11 19:07:46 [INFO] src.services.processor_queue: Worker worker-3 processing message 11
+2026-03-11 19:07:46 [INFO] src.services.llm: Invoking LLM for expense extraction...
+2026-03-11 19:07:57 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
+2026-03-11 19:08:13 [INFO] src.core.cursor: Executing SQL: INSERT INTO expenses (user_id, completion_date, category, source, description, total)
+                        values (2061932699, '2026-03-11 19:06:32'::timestamp, 'Preferencias', 'Efectivo', 'Compré zapatos en la tienda de la esquina', 95000.0)
+2026-03-11 19:08:13 [INFO] src.repositories.expenses: New row was inserted successfully!
+2026-03-11 19:08:13 [INFO] src.services.orchestrator: Successfully processed message 8 for user 2061932699
+2026-03-11 19:08:13 [INFO] src.services.processor_queue: Worker worker-1 finished message 8
+2026-03-11 19:08:13 [INFO] src.services.processor_queue: Worker worker-1 processing message 12
+2026-03-11 19:08:13 [INFO] src.services.llm: Invoking LLM for expense extraction...
+2026-03-11 19:08:22 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
+2026-03-11 19:08:29 [ERROR] src.services.llm: Error during AI processing: Invalid json output: Lo siento, pero no tengo una respuesta para tu pregunta. ¿Puedo ayudarte a extraer datos financieros de un mensaje de texto?
 For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE
-2026-03-02 19:36:00 [ERROR] src.services.orchestrator: Domain error processing message 9: The AI could not process the message: Invalid json output: Lo siento, pero no tengo una respuesta para tu pregunta. ¿Puedo ayudarte a transformar un mensaje de texto en un formato estructurado según las reglas de categorización que se me han proporcionado?
+2026-03-11 19:08:29 [ERROR] src.services.orchestrator: Domain error processing message 9: The AI could not process the message: Invalid json output: Lo siento, pero no tengo una respuesta para tu pregunta. ¿Puedo ayudarte a extraer datos financieros de un mensaje de texto?
 For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE
-2026-03-02 19:36:00 [INFO] src.services.processor_queue: Worker worker-2 finished message 9
-2026-03-02 19:36:09 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
-2026-03-02 19:36:35 [ERROR] src.services.llm: Error during AI processing: Invalid json output: Claro, te puedo ayudar a transformar el mensaje de texto en un formato estructurado.
-
-Por favor proporciona el mensaje de texto que deseas procesar. Recuerda que necesito extraer la fecha, total, categoría, fuente y descripción del mensaje. Si falta alguna información, como el monto, te pediré amablemente que me lo proporciones.
-
-Una vez que tenga todo el dato necesario, puedo generar un objeto JSON con la estructura solicitada.
+2026-03-11 19:08:29 [INFO] src.services.processor_queue: Worker worker-0 finished message 9
+2026-03-11 19:08:38 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
+2026-03-11 19:08:58 [ERROR] src.services.llm: Error during AI processing: Invalid json output: ¡Claro! Para ayudarte a transformar el mensaje de texto en un formato estructurado, necesito que me proporciones el mensaje de texto que deseas procesar. Por favor, proporciona el mensaje de texto y te ayudaré a extraer la fecha, total, categoría, fuente y descripción, y a clasificar el gasto según las reglas de categorización establecidas.
 For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE
-2026-03-02 19:36:35 [ERROR] src.services.orchestrator: Domain error processing message 10: The AI could not process the message: Invalid json output: Claro, te puedo ayudar a transformar el mensaje de texto en un formato estructurado.
-
-Por favor proporciona el mensaje de texto que deseas procesar. Recuerda que necesito extraer la fecha, total, categoría, fuente y descripción del mensaje. Si falta alguna información, como el monto, te pediré amablemente que me lo proporciones.
-
-Una vez que tenga todo el dato necesario, puedo generar un objeto JSON con la estructura solicitada.
+2026-03-11 19:08:58 [ERROR] src.services.orchestrator: Domain error processing message 10: The AI could not process the message: Invalid json output: ¡Claro! Para ayudarte a transformar el mensaje de texto en un formato estructurado, necesito que me proporciones el mensaje de texto que deseas procesar. Por favor, proporciona el mensaje de texto y te ayudaré a extraer la fecha, total, categoría, fuente y descripción, y a clasificar el gasto según las reglas de categorización establecidas.
 For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE
-2026-03-02 19:36:35 [INFO] src.services.processor_queue: Worker worker-0 finished message 10
-2026-03-02 19:36:44 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
-2026-03-02 19:36:59 [ERROR] src.services.llm: Error during AI processing: Failed to parse Expense from completion {"completion_date": "2026-03-02 19:35:11", "total": 0.0, "category": null, "source": null, "description": "No se ha proporcionado información sobre gastos para este mes."}. Got: 3 validation errors for Expense
-category
-  Input should be 'Alimentación y aseo', 'Cuidado personal', 'Preferencias' or 'Pagos' [type=enum, input_value=None, input_type=NoneType]
-    For further information visit https://errors.pydantic.dev/2.12/v/enum
-source
-  Input should be 'Bancolombia Leidy', 'Nequi Leidy', 'Nubank Leidy', 'Nubank Mercado', 'Nubank Yamile', 'Davivienda Yamile', 'Nequi Yamile' or 'Efectivo' [type=enum, input_value=None, input_type=NoneType]
-    For further information visit https://errors.pydantic.dev/2.12/v/enum
+2026-03-11 19:08:58 [INFO] src.services.processor_queue: Worker worker-2 finished message 10
+2026-03-11 19:09:07 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
+2026-03-11 19:09:21 [ERROR] src.services.llm: Error during AI processing: Failed to parse Expense from completion {"completion_date": "2026-03-11 19:07:46", "total": 0.0, "category": "Preferencias", "source": "Efectivo", "description": "No se proporcionó información de gasto para este mes"}. Got: 1 validation error for Expense
 total
   Input should be greater than 0 [type=greater_than, input_value=0.0, input_type=float]
     For further information visit https://errors.pydantic.dev/2.12/v/greater_than
 For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE
-2026-03-02 19:36:59 [ERROR] src.services.orchestrator: Domain error processing message 11: The AI could not process the message: Failed to parse Expense from completion {"completion_date": "2026-03-02 19:35:11", "total": 0.0, "category": null, "source": null, "description": "No se ha proporcionado información sobre gastos para este mes."}. Got: 3 validation errors for Expense
-category
-  Input should be 'Alimentación y aseo', 'Cuidado personal', 'Preferencias' or 'Pagos' [type=enum, input_value=None, input_type=NoneType]
-    For further information visit https://errors.pydantic.dev/2.12/v/enum
-source
-  Input should be 'Bancolombia Leidy', 'Nequi Leidy', 'Nubank Leidy', 'Nubank Mercado', 'Nubank Yamile', 'Davivienda Yamile', 'Nequi Yamile' or 'Efectivo' [type=enum, input_value=None, input_type=NoneType]
-    For further information visit https://errors.pydantic.dev/2.12/v/enum
+2026-03-11 19:09:21 [ERROR] src.services.orchestrator: Domain error processing message 11: The AI could not process the message: Failed to parse Expense from completion {"completion_date": "2026-03-11 19:07:46", "total": 0.0, "category": "Preferencias", "source": "Efectivo", "description": "No se proporcionó información de gasto para este mes"}. Got: 1 validation error for Expense
 total
   Input should be greater than 0 [type=greater_than, input_value=0.0, input_type=float]
     For further information visit https://errors.pydantic.dev/2.12/v/greater_than
 For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE
-2026-03-02 19:36:59 [INFO] src.services.processor_queue: Worker worker-3 finished message 11
-2026-03-02 19:37:08 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
-2026-03-02 19:37:22 [ERROR] src.services.llm: Error during AI processing: Failed to parse Expense from completion {"completion_date": "2026-03-02 19:35:38", "total": null, "category": "Alimentación y aseo", "source": "Efectivo", "description": "Nota: Fuente no especificada"}. Got: 1 validation error for Expense
+2026-03-11 19:09:21 [INFO] src.services.processor_queue: Worker worker-3 finished message 11
+2026-03-11 19:09:32 [INFO] httpx: HTTP Request: POST http://localhost:11434/api/chat "HTTP/1.1 200 OK"
+2026-03-11 19:09:45 [ERROR] src.services.llm: Error during AI processing: Failed to parse Expense from completion {"completion_date": "2026-03-11 19:08:13", "total": 0.0, "category": "Alimentación y aseo", "source": "Efectivo", "description": "Nota: Fuente no especificada"}. Got: 1 validation error for Expense
 total
-  Decimal input should be an integer, float, string or Decimal object [type=decimal_type, input_value=None, input_type=NoneType]
-    For further information visit https://errors.pydantic.dev/2.12/v/decimal_type
+  Input should be greater than 0 [type=greater_than, input_value=0.0, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.12/v/greater_than
 For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE
-2026-03-02 19:37:22 [ERROR] src.services.orchestrator: Domain error processing message 12: The AI could not process the message: Failed to parse Expense from completion {"completion_date": "2026-03-02 19:35:38", "total": null, "category": "Alimentación y aseo", "source": "Efectivo", "description": "Nota: Fuente no especificada"}. Got: 1 validation error for Expense
+2026-03-11 19:09:45 [ERROR] src.services.orchestrator: Domain error processing message 12: The AI could not process the message: Failed to parse Expense from completion {"completion_date": "2026-03-11 19:08:13", "total": 0.0, "category": "Alimentación y aseo", "source": "Efectivo", "description": "Nota: Fuente no especificada"}. Got: 1 validation error for Expense
 total
-  Decimal input should be an integer, float, string or Decimal object [type=decimal_type, input_value=None, input_type=NoneType]
-    For further information visit https://errors.pydantic.dev/2.12/v/decimal_type
+  Input should be greater than 0 [type=greater_than, input_value=0.0, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.12/v/greater_than
 For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE
-2026-03-02 19:37:22 [INFO] src.services.processor_queue: Worker worker-1 finished message 12
-2026-03-02 19:37:22 [INFO] test_e2e_flow:
-🚀 Processed 13 messages in 339.46 seconds
-2026-03-02 19:37:22 [INFO] test_e2e_flow: ⚡ Speed: 0.04 messages/second
-2026-03-02 19:37:22 [INFO] src.core.cursor: Executing SQL: SELECT COUNT(*) FROM expenses
+2026-03-11 19:09:45 [INFO] src.services.processor_queue: Worker worker-1 finished message 12
+2026-03-11 19:09:45 [INFO] test_e2e_flow:
+🚀 Processed 13 messages in 325.03 seconds
+2026-03-11 19:09:45 [INFO] test_e2e_flow: ⚡ Speed: 0.04 messages/second
+2026-03-11 19:09:45 [INFO] src.core.cursor: Executing SQL: SELECT COUNT(*) FROM expenses

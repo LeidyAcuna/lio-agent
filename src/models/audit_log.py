@@ -17,3 +17,8 @@ class AuditLog(BaseModel):
     chat_id: int
     message_text: str
     message_date: datetime
+
+
+class AuditLogInDB(AuditLog):
+    id: int
+    created_at: datetime

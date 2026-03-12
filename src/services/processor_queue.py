@@ -5,7 +5,7 @@ from typing import List
 from src.core.config import get_settings
 from src.core.exceptions import AppError
 from src.models.message import Message
-from src.repository.expenses import ExpenseRepository
+from src.repositories.expenses import ExpenseRepository
 from src.services.orchestrator import process_expense_message
 
 settings = get_settings()

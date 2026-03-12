@@ -2,7 +2,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 
 from src.core.config import get_settings
-from src.repository.audit_logs import AuditLogsRepository
+from src.repositories.audit_logs import AuditLogsRepository
 from src.services.orchestrator import handle_telegram_update
 from src.services.processor_queue import ProcessingQueue
 

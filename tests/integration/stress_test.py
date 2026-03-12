@@ -12,7 +12,7 @@ import pytest
 
 from src.core.database import DatabaseManager
 from src.models.expense import CategoryEnum, Expense, SourceEnum
-from src.repository.expenses import ExpenseRepository
+from src.repositories.expenses import ExpenseRepository
 
 
 @pytest.mark.asyncio
