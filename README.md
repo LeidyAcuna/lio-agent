@@ -66,6 +66,7 @@ These tests require the infrastructure (DB and AI) to be running.
 2. **Run Integration Suite**:
    ```bash
    uv run pytest tests/integration/stress_test.py -s
+   uv run pytest tests/integration/test_audit_repository.py -s
    uv run pytest tests/integration/test_e2e_flow.py -s --log-cli-level=INFO
    ```
 *Note: All execution logs are automatically saved to `tests/logs/test_run.log` for detailed inspection.*

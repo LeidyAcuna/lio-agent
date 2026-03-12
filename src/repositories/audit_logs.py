@@ -127,3 +127,58 @@ class AuditLogsRepository:
         except psycopg.Error as error:
             logger.error(f"Failed to get last audit log: {error}")
             raise DatabaseError(f"Failed to get last audit log: {error}")
+
+    async def get_total_count_by_user_id(self, user_id: int) -> int:
+        """
+        Returns the total count of audit log records in the audit_logs table.
+
+        Args:
+            user_id (int): The Telegram user ID associated with the audit log.
+
+        Returns:
+            int: The total count of audit log records.
+
+        Raises:
+            DatabaseError: A custom exception wrapped around database failures
+                                during insertion to provide domain-specific context.
+        """
+        try:
+            async with self.db.get_connection() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute(
+                        "SELECT COUNT(*) FROM public.audit_logs where user_id = %s",
+                        (user_id,),
+                    )
+                    result = await cur.fetchone()
+                    return result[0]
+        except psycopg.Error as error:
+            logger.error(
+                f"Failed to get total count of audit logs for user {user_id}: {error}"
+            )
+            raise DatabaseError(
+                f"Failed to get total count of audit logs for user {user_id}: {error}"
+            )
+
+    async def delete_by_user_id(self, user_id: int) -> None:
+        """
+        Deletes all audit log records from the audit_logs table.
+
+        Args:
+            user_id (int): The Telegram user ID associated with the audit log.
+
+        Raises:
+            DatabaseError: A custom exception wrapped around database failures
+                                during deletion to provide domain-specific context.
+        """
+        try:
+            async with self.db.get_connection() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute(
+                        "DELETE FROM public.audit_logs where user_id = %s", (user_id,)
+                    )
+                    logger.info("All audit logs deleted successfully!")
+        except psycopg.Error as error:
+            logger.error(f"Failed to delete audit logs for user {user_id}: {error}")
+            raise DatabaseError(
+                f"Failed to delete audit logs for user {user_id}: {error}"
+            )

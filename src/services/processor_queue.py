@@ -69,7 +69,7 @@ class ProcessingQueue:
 
 async def message_worker(
     worker_id: str,
-    queue_manager: ProcessingQueue,
+    processing_queue: ProcessingQueue,
     expense_repository: ExpenseRepository,
     telegram_app,
     llm_service,
@@ -79,14 +79,14 @@ async def message_worker(
 
     Args:
         worker_id (str): Unique identifier for the worker instance.
-        queue_manager (ProcessingQueue): The queue to pull messages from.
+        processing_queue (ProcessingQueue): The queue to pull messages from.
         expense_repository (ExpenseRepository): Repository for data persistence.
         telegram_app: The Telegram application instance for sending responses.
     """
     while True:
-        message = await queue_manager.dequeue()
+        message = await processing_queue.dequeue()
         try:
-            async with queue_manager.semaphore:
+            async with processing_queue.semaphore:
                 logger.info(
                     f"Worker {worker_id} processing message {message.message_id}"
                 )
@@ -105,11 +105,11 @@ async def message_worker(
         except Exception as e:
             logger.critical(f"Unexpected error in {worker_id}: {str(e)}", exc_info=True)
         finally:
-            queue_manager.task_done()
+            processing_queue.task_done()
 
 
 async def start_worker_tasks(
-    queue_manager: ProcessingQueue,
+    processing_queue: ProcessingQueue,
     expense_repository: ExpenseRepository,
     telegram_app,
     llm_service,
@@ -118,7 +118,7 @@ async def start_worker_tasks(
     Spawns multiple worker tasks based on concurrency settings.
 
     Args:
-        queue_manager (ProcessingQueue): The shared queue for workers.
+        processing_queue (ProcessingQueue): The shared queue for workers.
         expense_repository (ExpenseRepository): Data repository for workers.
         telegram_app: Telegram app instance.
 
@@ -132,7 +132,7 @@ async def start_worker_tasks(
         task = asyncio.create_task(
             message_worker(
                 worker_id=f"worker-{i}",
-                queue_manager=queue_manager,
+                processing_queue=processing_queue,
                 expense_repository=expense_repository,
                 telegram_app=telegram_app,
                 llm_service=llm_service,

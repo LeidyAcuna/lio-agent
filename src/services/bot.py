@@ -24,13 +24,15 @@ class TelegramBot:
         self.app = ApplicationBuilder().token(settings.TELEGRAM_BOT_TOKEN).build()
 
     def setup_handlers(
-        self, queue_manager: ProcessingQueue, audit_logs_repository: AuditLogsRepository
+        self,
+        processing_queue: ProcessingQueue,
+        audit_logs_repository: AuditLogsRepository,
     ) -> None:
         """
         Registers handlers to process incoming Telegram messages.
 
         Args:
-            queue_manager (ProcessingQueue): The queue where incoming messages
+            processing_queue (ProcessingQueue): The queue where incoming messages
                                           will be placed for processing.
         """
 
@@ -39,7 +41,10 @@ class TelegramBot:
         ) -> None:
             """Internal wrapper to bridge Telegram updates with the manager."""
             await handle_telegram_update(
-                update, context, queue_manager, audit_logs_repository
+                update=update,
+                context=context,
+                processing_queue=processing_queue,
+                audit_logs_repository=audit_logs_repository,
             )
 
         # Handler for all text messages that are not commands

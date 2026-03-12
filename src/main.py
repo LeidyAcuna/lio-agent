@@ -51,12 +51,13 @@ async def run_application():
 
         # Register bot handlers
         bot_service.setup_handlers(
-            queue_manager=processing_queue, audit_logs_repository=audit_logs_repository
+            processing_queue=processing_queue,
+            audit_logs_repository=audit_logs_repository,
         )
 
         # Start background workers
         worker_tasks = await start_worker_tasks(
-            queue_manager=processing_queue,
+            processing_queue=processing_queue,
             expense_repository=expense_repository,
             telegram_app=bot_service.app,
             llm_service=llm_service,

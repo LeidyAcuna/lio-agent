@@ -86,7 +86,9 @@ async def handle_telegram_update(
 
         user_id = update.message.from_user.id
         if user_id not in settings.ALLOWED_TELEGRAM_USER_IDS:
-            await handle_unauthorized_user(update, audit_logs_repository)
+            await handle_unauthorized_user(
+                update=update, audit_logs_repository=audit_logs_repository
+            )
             return
         # Canonicalize the TG message into our domain Message model
         domain_message = Message(
