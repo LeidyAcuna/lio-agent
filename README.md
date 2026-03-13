@@ -2,6 +2,25 @@
 
 An asynchronous Telegram bot designed to streamline personal finance tracking. Lio-Agent uses Natural Language Processing (NLP) to transform plain text messages into structured financial data.
 
+![Lio-Agent Illustration](docs/images/lio_agent_illustration.png)
+
+## 🛠️ How it Works
+
+Lio-Agent is designed to run entirely in your local environment, ensuring data privacy and low latency.
+
+### 1. Local Processing & Batching
+![Execution](docs/images/execution.png)
+Everything runs locally. You can send your expenses to the bot at any time; the system is designed to handle messages asynchronously. If the bot is offline, Telegram will queue the messages, and once you start the project, Lio-Agent will process and store everything efficiently.
+
+### 2. AI-Powered Extraction & Storage
+![Database Records](docs/images/records_db.png)
+Once a message is received, the LLM (Llama 3.1) extracts key information such as the amount, category, and payment method. This structured data is then automatically classified and stored in the PostgreSQL database for future tracking.
+
+### 3. User Feedback
+<img src="docs/images/telegram_responses.png" alt="Telegram Responses" width="350">
+
+After processing each expense, the bot provides immediate feedback. Currently, it responds with a static confirmation message to let you know the transaction was recorded successfully.
+
 ## 🚀 Key Features
 
 - **Natural Language Input**: Record expenses by simply chatting (e.g., "Spent 50k on groceries yesterday via Nequi").
@@ -19,7 +38,7 @@ An asynchronous Telegram bot designed to streamline personal finance tracking. L
 - **Validation**: `Pydantic`
 - **Infrastructure**: `Docker` & `Docker Compose`
 
-![Tech Stack Architecture](docs/arq.png)
+![Tech Stack Architecture](docs/images/arq.png)
 
 ## 🏗 Architecture Overview
 
