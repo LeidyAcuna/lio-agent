@@ -10,8 +10,11 @@ from src.core.exceptions import AppError
 from src.repositories.audit_logs import AuditLogsRepository
 from src.repositories.expenses import ExpenseRepository
 from src.services.bot import TelegramBot
+from src.services.expense_processor import ExpenseProcessor
 from src.services.llm import LlmService
-from src.services.processor_queue import ProcessingQueue, start_worker_tasks
+from src.services.msg_queue import MessageQueue
+from src.services.orchestrator import Orchestrator
+from src.services.worker_manager import WorkerManager
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -45,23 +48,27 @@ async def run_application():
         await audit_logs_repository.setup_schema()
         logger.info("Infrastructure initialized successfully.")
 
-        processing_queue = ProcessingQueue()
         bot_service = TelegramBot()
         llm_service = LlmService()
-
-        # Register bot handlers
-        bot_service.setup_handlers(
-            processing_queue=processing_queue,
-            audit_logs_repository=audit_logs_repository,
+        msg_queue = MessageQueue()
+        orchestrator = Orchestrator(
+            msg_queue=msg_queue, audit_logs_repository=audit_logs_repository
         )
-
-        # Start background workers
-        worker_tasks = await start_worker_tasks(
-            processing_queue=processing_queue,
+        expense_processor = ExpenseProcessor(
             expense_repository=expense_repository,
             telegram_app=bot_service.app,
             llm_service=llm_service,
         )
+
+        # Register bot handlers
+        bot_service.setup_handlers(orchestrator=orchestrator)
+
+        # Start background workers
+        worker_manager = WorkerManager(
+            queue=msg_queue,
+            expense_processor=expense_processor,
+        )
+        worker_tasks = await worker_manager.start_worker_tasks()
         logger.info(f"Background processing started with {len(worker_tasks)} workers.")
 
         # Start the Telegram Bot lifecycle

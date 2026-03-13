@@ -16,9 +16,12 @@ from src.core.database import DatabaseManager
 from src.models.message import Message
 from src.repositories.audit_logs import AuditLogsRepository
 from src.repositories.expenses import ExpenseRepository
+from src.services.bot import TelegramBot
+from src.services.expense_processor import ExpenseProcessor
 from src.services.llm import LlmService
-from src.services.orchestrator import handle_telegram_update
-from src.services.processor_queue import ProcessingQueue, start_worker_tasks
+from src.services.msg_queue import MessageQueue
+from src.services.orchestrator import Orchestrator
+from src.services.worker_manager import WorkerManager
 
 logger = logging.getLogger(__name__)
 
@@ -142,19 +145,26 @@ async def test_e2e_flow(mocker, test_cases, mock_telegram_app):
     audit_logs_repository = AuditLogsRepository(db=db)
     await audit_logs_repository.setup_schema()
 
-    processing_queue = ProcessingQueue()
     llm_service = LlmService()
+    msg_queue = MessageQueue()
+    orchestrator = Orchestrator(
+        msg_queue=msg_queue, audit_logs_repository=audit_logs_repository
+    )
+    expense_processor = ExpenseProcessor(
+        expense_repository=expense_repository,
+        telegram_app=mock_telegram_app,
+        llm_service=llm_service,
+    )
 
     # Clean test database
     await expense_repository.delete_by_user_id(user_id=2061932699)
     await audit_logs_repository.delete_by_user_id(user_id=2061932691)
 
-    worker_tasks = await start_worker_tasks(
-        processing_queue=processing_queue,
-        expense_repository=expense_repository,
-        telegram_app=mock_telegram_app,
-        llm_service=llm_service,
+    worker_manager = WorkerManager(
+        queue=msg_queue,
+        expense_processor=expense_processor,
     )
+    worker_tasks = await worker_manager.start_worker_tasks()
     logger.info(f"Background processing started with {len(worker_tasks)} workers.")
 
     start_time = time.perf_counter()
@@ -172,15 +182,13 @@ async def test_e2e_flow(mocker, test_cases, mock_telegram_app):
         mock_update.message.date = datetime.now()
         mock_update.message.reply_text = mocker.AsyncMock()
 
-        await handle_telegram_update(
+        await orchestrator.handle_telegram_update(
             update=mock_update,
             context=mock_telegram_app,
-            processing_queue=processing_queue,
-            audit_logs_repository=audit_logs_repository,
         )
 
     # Wait for the queue to be fully processed by the workers
-    await processing_queue.join()
+    await msg_queue.join()
 
     end_time = time.perf_counter()
     duration = end_time - start_time
