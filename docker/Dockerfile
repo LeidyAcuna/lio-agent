@@ -1,25 +1,25 @@
 FROM python:3.14-slim-trixie
 
-# Installing uv
 COPY --from=ghcr.io/astral-sh/uv:0.9.26 /uv /uvx /bin/
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_NO_DEV=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    UV_CACHE_DIR=/tmp/uv-cache
+
+RUN groupadd -r liogroup && useradd -r -g liogroup -s /sbin/nologin liouser
 
 WORKDIR /app
 
-# Copy the configuration files
-COPY pyproject.toml uv.lock ./
+RUN chown liouser:liogroup /app
 
+USER liouser
+
+COPY --chown=liouser:liogroup pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-install-project
-# Copy the project into the image
 
-COPY src/ ./src/
-
-#Install project
+COPY --chown=liouser:liogroup src/ ./src/
 RUN uv sync --frozen
-
 
 CMD ["uv", "run", "python", "src/main.py"]

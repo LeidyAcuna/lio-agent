@@ -2,6 +2,25 @@
 
 An asynchronous Telegram bot designed to streamline personal finance tracking. Lio-Agent uses Natural Language Processing (NLP) to transform plain text messages into structured financial data.
 
+![Lio-Agent Illustration](docs/images/lio_agent_illustration.png)
+
+## 🛠️ How it Works
+
+Lio-Agent is designed to run entirely in your local environment, ensuring data privacy and low latency.
+
+### 1. Local Processing & Batching
+![Execution](docs/images/execution.png)
+Everything runs locally. You can send your expenses to the bot at any time; the system is designed to handle messages asynchronously. If the bot is offline, Telegram will queue the messages, and once you start the project, Lio-Agent will process and store everything efficiently.
+
+### 2. AI-Powered Extraction & Storage
+![Database Records](docs/images/records_db.png)
+Once a message is received, the LLM (Llama 3.1) extracts key information such as the amount, category, and payment method. This structured data is then automatically classified and stored in the PostgreSQL database for future tracking.
+
+### 3. User Feedback
+<img src="docs/images/telegram_responses.png" alt="Telegram Responses" width="350">
+
+After processing each expense, the bot provides immediate feedback. Currently, it responds with a static confirmation message to let you know the transaction was recorded successfully.
+
 ## 🚀 Key Features
 
 - **Natural Language Input**: Record expenses by simply chatting (e.g., "Spent 50k on groceries yesterday via Nequi").
@@ -12,14 +31,14 @@ An asynchronous Telegram bot designed to streamline personal finance tracking. L
 
 ## 🛠 Tech Stack
 
-- **Languaje**: Python 3.14+
+- **Language**: Python 3.14+
 - **Frameworks**: `python-telegram-bot`, `LangChain`
 - **AI Inference**: `Ollama`
 - **Database**: `PostgreSQL` with `psycopg3` (Connection Pool)
 - **Validation**: `Pydantic`
 - **Infrastructure**: `Docker` & `Docker Compose`
 
-![Tech Stack Architecture](docs/arq.png)
+![Tech Stack Architecture](docs/images/arq.png)
 
 ## 🏗 Architecture Overview
 
@@ -65,6 +84,8 @@ These tests require the infrastructure (DB and AI) to be running.
    ```
 2. **Run Integration Suite**:
    ```bash
+   uv run pytest tests/integration/stress_test.py -s
+   uv run pytest tests/integration/test_audit_repository.py -s
    uv run pytest tests/integration/test_e2e_flow.py -s --log-cli-level=INFO
    ```
 *Note: All execution logs are automatically saved to `tests/logs/test_run.log` for detailed inspection.*
@@ -78,10 +99,10 @@ The End-to-End test simulates a real-world scenario where multiple users send na
 
 You can find a complete execution log example in the root file: `test_example_e2e_flow.log`.
 
-## � Author
+## Author
 
 - **Leidy Acuña** - [GitHub](https://github.com/LeidyAcuna)
 
-## �📄 License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

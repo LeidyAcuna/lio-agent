@@ -15,10 +15,15 @@ class Settings:
     POSTGRES_PW: str = os.getenv("POSTGRES_PW")
     POSTGRES_DB: str = os.getenv("POSTGRES_DB")
     POSTGRES_HOST: str = os.getenv("POSTGRES_HOST")
-    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT")
+    POSTGRES_PORT: int = int(os.getenv("POSTGRES_PORT", "5432"))
     TELEGRAM_BOT_TOKEN: str = os.getenv("TOKEN_TELEGRAM_LIO")
-    MAX_CONCURRENCY_QUEUE: str = os.getenv("MAX_CONCURRENCY")
+    MAX_CONCURRENCY_QUEUE: int = int(os.getenv("MAX_CONCURRENCY", "1"))
     OLLAMA_URL: str = os.getenv("OLLAMA_URL")
+
+    _ids_str = os.getenv("ALLOWED_TELEGRAM_USER_IDS", "")
+    ALLOWED_TELEGRAM_USER_IDS: list[int] = [
+        int(uid.strip()) for uid in _ids_str.split(",") if uid.strip()
+    ]
 
 
 _settings = Settings()
@@ -47,12 +52,17 @@ def validate_settings() -> None:
         config.POSTGRES_USER,
         config.POSTGRES_PW,
         config.POSTGRES_DB,
-        config.SERVICE_POSTGRES_HOST,
-        config.SERVICE_POSTGRES_PORT,
+        config.POSTGRES_HOST,
+        config.POSTGRES_PORT,
         config.TELEGRAM_BOT_TOKEN,
         config.MAX_CONCURRENCY_QUEUE,
+        config.OLLAMA_URL,
     ]
     if not all(required):
         raise ConfigurationError(
             "Missing required environment variables. Please check your .env file."
+        )
+    if not config.ALLOWED_TELEGRAM_USER_IDS:
+        raise ConfigurationError(
+            "No users are allowed to use the bot. Please set ALLOWED_TELEGRAM_USER_IDS in your .env file."
         )

@@ -9,17 +9,18 @@ services:
       - ../src:/app/src
       - /app/.venv
     ports:
-      - "5679:5679"
+      - "5677:5677"
     environment:
       - DEBUG_MODE=false
-      - DB_NAME=${POSTGRES_DB}
-      - DB_USER=${POSTGRES_USER}
-      - DB_PASS=${POSTGRES_PW}
-      - DB_HOST=${POSTGRES_HOST}
-      - DB_PORT=${POSTGRES_PORT}
-      - BOT_TOKEN=${TOKEN_TELEGRAM_LIO}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PW=${POSTGRES_PW}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - TOKEN_TELEGRAM_LIO=${TOKEN_TELEGRAM_LIO}
       - MAX_CONCURRENCY=${MAX_CONCURRENCY}
       - OLLAMA_URL=${OLLAMA_URL}
+      - ALLOWED_TELEGRAM_USER_IDS=${ALLOWED_TELEGRAM_USER_IDS}
     depends_on:
       postgres:
         condition: service_healthy
@@ -53,7 +54,7 @@ services:
       - lio_agent_net
 
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:0.17.7
     container_name: ollama
     volumes:
       - lio_ollama_data:/root/.ollama
@@ -76,7 +77,7 @@ services:
 
     # Contenedor auxiliar para descargar el modelo
   ollama-pull-model:
-    image: curlimages/curl:latest
+    image: curlimages/curl:8.18.0
     container_name: ollama-pull-model
     depends_on:
       ollama:

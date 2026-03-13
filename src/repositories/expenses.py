@@ -18,17 +18,20 @@ class ExpenseRepository:
     interface for expense-related data operations.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, db: DatabaseManager) -> None:
         """
-        Initializes the repository with a DatabaseManager instance to handle connections.
+        Initializes the repository with a shared DatabaseManager instance.
+
+        Args:
+            db (DatabaseManager): The shared database manager.
         """
-        self.db = DatabaseManager()
+        self.db = db
 
     async def setup_schema(self) -> None:
         """
         Sets up the database structure required for the repository.
 
-        Reads the SQL definitions from 'core/table.sql' and applies them
+        Reads the SQL definitions from 'src/core/schema_expenses.sql' and applies them
         asynchronously. This is invoked during application initialization.
 
         Raises:
@@ -38,7 +41,9 @@ class ExpenseRepository:
         try:
 
             def read_sql() -> str:
-                with open("src/core/schema.sql", "r", encoding="utf-8") as file:
+                with open(
+                    "src/core/schema_expenses.sql", "r", encoding="utf-8"
+                ) as file:
                     return file.read()
 
             sql_script = await asyncio.to_thread(read_sql)
@@ -50,7 +55,9 @@ class ExpenseRepository:
             logger.info("Database schema initialized successfully.")
 
         except OSError as e:
-            raise ConfigurationError(f"SQL file core/table.sql not found: {e}")
+            raise ConfigurationError(
+                f"SQL file core/schema_expenses.sql not found: {e}"
+            )
         except psycopg.Error as e:
             raise DatabaseError(f"Failed to execute schema initialization: {e}")
 
@@ -107,3 +114,55 @@ class ExpenseRepository:
         except psycopg.Error as error:
             logger.error(f"Failed to get total count: {error}")
             raise DatabaseError(f"Failed to get total count: {error}")
+
+    async def get_total_count_by_user_id(self, user_id: int) -> int:
+        """
+        Returns the total number of records in the expenses table.
+
+        Args:
+            user_id (int): The Telegram user ID associated with the expense.
+
+        Returns:
+            int: The total number of records in the expenses table.
+
+        Raises:
+            DatabaseError: A custom exception wrapped around database failures
+                                during insertion to provide domain-specific context.
+        """
+        try:
+            async with self.db.get_connection() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute(
+                        "SELECT COUNT(*) FROM expenses where user_id = %s", (user_id,)
+                    )
+                    result = await cur.fetchone()
+                    return result[0] if result else 0
+        except psycopg.Error as error:
+            logger.error(f"Failed to get total count for user {user_id}: {error}")
+            raise DatabaseError(
+                f"Failed to get total count for user {user_id}: {error}"
+            )
+
+    async def delete_by_user_id(self, user_id: int) -> None:
+        """
+        Deletes all expense records for a specific user from the expenses table.
+
+        Args:
+            user_id (int): The Telegram user ID associated with the expense.
+
+        Raises:
+            DatabaseError: A custom exception wrapped around database failures
+                                during deletion to provide domain-specific context.
+        """
+        try:
+            async with self.db.get_connection() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute(
+                        "DELETE FROM expenses where user_id = %s", (user_id,)
+                    )
+                    logger.info("All expenses deleted successfully!")
+        except psycopg.Error as error:
+            logger.error(f"Failed to delete all expenses for user {user_id}: {error}")
+            raise DatabaseError(
+                f"Failed to delete all expenses for user {user_id}: {error}"
+            )

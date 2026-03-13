@@ -5,10 +5,16 @@ import os
 import debugpy
 
 from src.core.config import validate_settings
+from src.core.database import DatabaseManager
 from src.core.exceptions import AppError
-from src.repository.expenses import ExpenseRepository
+from src.repositories.audit_logs import AuditLogsRepository
+from src.repositories.expenses import ExpenseRepository
 from src.services.bot import TelegramBot
-from src.services.processor_queue import ProcessingQueue, start_worker_tasks
+from src.services.expense_processor import ExpenseProcessor
+from src.services.llm import LlmService
+from src.services.msg_queue import MessageQueue
+from src.services.orchestrator import Orchestrator
+from src.services.worker_manager import WorkerManager
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -31,25 +37,38 @@ async def run_application():
         logger.info("Initializing Lio-Agent core services...")
         validate_settings()
         # Initialize Infrastructure
-        expense_repository = ExpenseRepository()
-        await expense_repository.db.initialize()
+        db = DatabaseManager()
+        await db.initialize()
 
-        processing_queue = ProcessingQueue()
-        bot_service = TelegramBot()
+        expense_repository = ExpenseRepository(db=db)
+        audit_logs_repository = AuditLogsRepository(db=db)
 
         # Database schema verification/setup
         await expense_repository.setup_schema()
+        await audit_logs_repository.setup_schema()
         logger.info("Infrastructure initialized successfully.")
 
-        # Register bot handlers
-        bot_service.setup_handlers(queue_manager=processing_queue)
-
-        # Start background workers
-        worker_tasks = await start_worker_tasks(
-            queue_manager=processing_queue,
+        bot_service = TelegramBot()
+        llm_service = LlmService()
+        msg_queue = MessageQueue()
+        orchestrator = Orchestrator(
+            msg_queue=msg_queue, audit_logs_repository=audit_logs_repository
+        )
+        expense_processor = ExpenseProcessor(
             expense_repository=expense_repository,
             telegram_app=bot_service.app,
+            llm_service=llm_service,
         )
+
+        # Register bot handlers
+        bot_service.setup_handlers(orchestrator=orchestrator)
+
+        # Start background workers
+        worker_manager = WorkerManager(
+            queue=msg_queue,
+            expense_processor=expense_processor,
+        )
+        worker_tasks = await worker_manager.start_worker_tasks()
         logger.info(f"Background processing started with {len(worker_tasks)} workers.")
 
         # Start the Telegram Bot lifecycle
@@ -74,7 +93,7 @@ async def run_application():
                 await bot_service.app.shutdown()
 
         logger.info("Closing database connections...")
-        await expense_repository.db.shutdown()
+        await db.shutdown()
 
     except AppError as e:
         logger.critical(f"Application failed to start: {e.to_dict()}", exc_info=True)
@@ -87,7 +106,7 @@ async def run_application():
 if __name__ == "__main__":
     # Optional Debug Mode configuration
     if os.getenv("DEBUG_MODE") == "true":
-        debugpy.listen(("0.0.0.0", 5679))
+        debugpy.listen(("0.0.0.0", 5677))
         print("Waiting for debugger to attach...")
         debugpy.wait_for_client()
 

@@ -8,12 +8,20 @@ AI extraction via Ollama, and final persistence in PostgreSQL.
 import asyncio
 import logging
 import time
+from datetime import datetime
 
 import pytest
 
+from src.core.database import DatabaseManager
 from src.models.message import Message
-from src.repository.expenses import ExpenseRepository
-from src.services.processor_queue import ProcessingQueue, start_worker_tasks
+from src.repositories.audit_logs import AuditLogsRepository
+from src.repositories.expenses import ExpenseRepository
+from src.services.bot import TelegramBot
+from src.services.expense_processor import ExpenseProcessor
+from src.services.llm import LlmService
+from src.services.msg_queue import MessageQueue
+from src.services.orchestrator import Orchestrator
+from src.services.worker_manager import WorkerManager
 
 logger = logging.getLogger(__name__)
 
@@ -24,20 +32,86 @@ def test_cases():
     Returns a mix of valid financial messages and informal chat to test
     LLM extraction and filtering capabilities.
     """
+    # 4 messages from user unauthorized and 9 messages from user authorized but 4 messages are not expenses
     return [
-        "Gasté 150000 en comida ayer pagando con Bancolombia Leidy",
-        "Compré 2 cafés en Juan Valdez por 15000 pesos usando Nubank Yamile",
-        "Pagué el arriendo de marzo por 1.200.000 con Bancolombia Leidy",
-        "Fui al supermercado y gasté 250.000 pesos en víveres usando Nubank Mercado",
-        "Me comí una hamburguesa por 35.000 pesos con Nequi Leidy",
-        "Pagué el recibo de la luz de este mes por 120.000 pesos usando efectivo",
-        "Compré una blusa en Zara por 89.900 pesos con Nubank Yamile",
-        "Cené sushi con mi novio por 180.000 pesos pagando con Davivienda Yamile",
-        "Me compré unos zapatos en la tienda de la esquina por 95.000 pesos usando efectivo",
-        "Hola, como estás?",
-        "Me puedes ayudar",
-        "Cuanto he gastado este mes?",
-        "Me alcanza para cenar?",
+        {
+            "user_id": 2061932691,
+            "chat_id": 2061932691,
+            "message_id": 1,
+            "text": "Gasté 150000 en comida ayer pagando con Bancolombia Leidy",
+        },
+        {
+            "user_id": 2061932691,
+            "chat_id": 2061932691,
+            "message_id": 2,
+            "text": "Compré 2 cafés en Juan Valdez por 15000 pesos usando Nubank Yamile",
+        },
+        {
+            "user_id": 2061932691,
+            "chat_id": 2061932691,
+            "message_id": 3,
+            "text": "Pagué el arriendo de marzo por 1.200.000 con Bancolombia Leidy",
+        },
+        {
+            "user_id": 2061932691,
+            "chat_id": 2061932691,
+            "message_id": 4,
+            "text": "Fui al supermercado y gasté 250.000 pesos en víveres usando Nubank Mercado",
+        },
+        {
+            "user_id": 2061932699,
+            "chat_id": 2061932699,
+            "message_id": 5,
+            "text": "Me comí una hamburguesa por 35.000 pesos con Nequi Leidy",
+        },
+        {
+            "user_id": 2061932699,
+            "chat_id": 2061932699,
+            "message_id": 6,
+            "text": "Pagué el recibo de la luz de este mes por 120.000 pesos usando efectivo",
+        },
+        {
+            "user_id": 2061932699,
+            "chat_id": 2061932699,
+            "message_id": 7,
+            "text": "Compré una blusa en Zara por 89.900 pesos con Nubank Yamile",
+        },
+        {
+            "user_id": 2061932699,
+            "chat_id": 2061932699,
+            "message_id": 8,
+            "text": "Cené sushi con mi novio por 180.000 pesos pagando con Davivienda Yamile",
+        },
+        {
+            "user_id": 2061932699,
+            "chat_id": 2061932699,
+            "message_id": 9,
+            "text": "Me compré unos zapatos en la tienda de la esquina por 95.000 pesos usando efectivo",
+        },
+        {
+            "user_id": 2061932699,
+            "chat_id": 2061932699,
+            "message_id": 10,
+            "text": "Hola, como estás?",
+        },
+        {
+            "user_id": 2061932699,
+            "chat_id": 2061932699,
+            "message_id": 11,
+            "text": "Me puedes ayudar",
+        },
+        {
+            "user_id": 2061932699,
+            "chat_id": 2061932699,
+            "message_id": 12,
+            "text": "Cuanto he gastado este mes?",
+        },
+        {
+            "user_id": 2061932699,
+            "chat_id": 2061932699,
+            "message_id": 13,
+            "text": "Me alcanza para cenar?",
+        },
     ]
 
 
@@ -54,7 +128,7 @@ def mock_telegram_app(mocker):
 
 
 @pytest.mark.asyncio
-async def test_e2e_flow(test_cases, mock_telegram_app):
+async def test_e2e_flow(mocker, test_cases, mock_telegram_app):
     """
     Tests the full business flow: Input -> Queue -> AI -> Database.
 
@@ -62,48 +136,75 @@ async def test_e2e_flow(test_cases, mock_telegram_app):
     ignores non-financial communication.
     """
     # Arrange: Initialize repository, queue, and background workers
-    expense_repository = ExpenseRepository()
-    await expense_repository.db.initialize()
-    await expense_repository.setup_schema()
-    queue_manager = ProcessingQueue()
+    db = DatabaseManager()
+    await db.initialize()
 
-    worker_tasks = await start_worker_tasks(
-        queue_manager=queue_manager,
+    expense_repository = ExpenseRepository(db=db)
+    await expense_repository.setup_schema()
+
+    audit_logs_repository = AuditLogsRepository(db=db)
+    await audit_logs_repository.setup_schema()
+
+    llm_service = LlmService()
+    msg_queue = MessageQueue()
+    orchestrator = Orchestrator(
+        msg_queue=msg_queue, audit_logs_repository=audit_logs_repository
+    )
+    expense_processor = ExpenseProcessor(
         expense_repository=expense_repository,
         telegram_app=mock_telegram_app,
+        llm_service=llm_service,
     )
-    logger.info(f"Background processing started with {len(worker_tasks)} workers.")
 
     # Clean test database
-    async with expense_repository.db.get_connection() as conn:
-        async with conn.cursor() as cur:
-            await cur.execute("DELETE FROM expenses")
+    await expense_repository.delete_by_user_id(user_id=2061932699)
+    await audit_logs_repository.delete_by_user_id(user_id=2061932691)
+
+    worker_manager = WorkerManager(
+        queue=msg_queue,
+        expense_processor=expense_processor,
+    )
+    worker_tasks = await worker_manager.start_worker_tasks()
+    logger.info(f"Background processing started with {len(worker_tasks)} workers.")
 
     start_time = time.perf_counter()
 
-    # Act: Enqueue all test messages
-    for i, text in enumerate(test_cases):
-        domain_message = Message(
-            user_id=2061932699,
-            chat_id=2061932699,
-            message_id=i,
-            text=text,
+    # It's necessary to create a mock update like the one in the Telegram API for each test case
+    for test in test_cases:
+        mock_update = mocker.Mock()
+        mock_update.message.from_user.id = test["user_id"]
+        mock_update.message.from_user.first_name = "Leidy"
+        mock_update.message.from_user.last_name = "Acuña"
+        mock_update.message.from_user.username = "leidyacunag"
+        mock_update.message.chat.id = test["chat_id"]
+        mock_update.message.text = test["text"]
+        mock_update.message.message_id = test["message_id"]
+        mock_update.message.date = datetime.now()
+        mock_update.message.reply_text = mocker.AsyncMock()
+
+        await orchestrator.handle_telegram_update(
+            update=mock_update,
+            context=mock_telegram_app,
         )
-        await queue_manager.enqueue(message=domain_message)
 
     # Wait for the queue to be fully processed by the workers
-    await queue_manager.join()
+    await msg_queue.join()
 
     end_time = time.perf_counter()
     duration = end_time - start_time
 
     # Assert: Verify total valid records in DB and performance
-    logger.info(f"\n🚀 Processed {len(test_cases)} messages in {duration:.2f} seconds")
-    logger.info(f"⚡ Speed: {len(test_cases) / duration:.2f} messages/second")
+    logger.info(f"Processed messages in {duration:.2f} seconds")
 
-    count = await expense_repository.get_total_count()
-    # 9 messages should be valid expenses, 4 should be filtered out
-    assert count == 9
+    count = await expense_repository.get_total_count_by_user_id(user_id=2061932699)
+    # 5 messages should be valid expenses, 8 should be filtered out
+    assert count == 5
+
+    count_audit_logs = await audit_logs_repository.get_total_count_by_user_id(
+        user_id=2061932691
+    )
+    # 4 messages should be valid audit logs, 9 should be filtered out
+    assert count_audit_logs == 4
 
     # Cleanup: Shutdown DB connections
-    await expense_repository.db.shutdown()
+    await db.shutdown()

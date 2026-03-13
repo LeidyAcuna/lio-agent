@@ -25,7 +25,7 @@ class DatabaseManager:
 
         The pool is configured with a custom 'LoggingCursor' factory and is not opened immediately.
         """
-        conn_str = f"dbname={settings.POSTGRES_DB} user={settings.POSTGRES_USER} password={settings.POSTGRES_PW} host={settings.POSTGRES_HOST} port={int(settings.POSTGRES_PORT)}"
+        conn_str = f"dbname={settings.POSTGRES_DB} user={settings.POSTGRES_USER} password={settings.POSTGRES_PW} host={settings.POSTGRES_HOST} port={settings.POSTGRES_PORT}"
         self.conn_pg_pool = AsyncConnectionPool(
             min_size=2,
             max_size=10,
