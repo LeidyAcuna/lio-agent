@@ -21,6 +21,11 @@ Once a message is received, the LLM (Llama 3.1) extracts key information such as
 
 After processing each expense, the bot provides immediate feedback. Currently, it responds with a static confirmation message to let you know the transaction was recorded successfully.
 
+### 4. Secure by Default
+<img src="docs/images/telegram_user_valid.jpg" alt="Unauthorized User Rejection" width="350">
+
+The bot employs a strict whitelist methodology. It will only process messages from explicitly authorized Telegram User IDs defined in your `.env` configuration. Anyone else attempting to interact with your personal bot will be immediately rejected. To ensure complete traceability, these unauthorized attempts are recorded in an internal `audit_logs` table, capturing the intruder's `user_id`, `fullname`, `username`, `chat_id`, `message_text`, and `message_date`.
+
 ## 🚀 Key Features
 
 - **Natural Language Input**: Record expenses by simply chatting (e.g., "Spent 50k on groceries yesterday via Nequi").
@@ -47,17 +52,36 @@ The system operates as a non-blocking pipeline:
 2. **Queue**: An asynchronous `asyncio.Queue` acts as a buffer.
 3. **Consumers (Workers)**: Multiple background workers pull messages, process them with LLMs via `ainvoke`, and persist data to the DB.
 
+## 🐳 Modular Docker Infrastructure
+
+To ensure a professional and safe development lifecycle, the infrastructure is intentionally decoupled into isolated Docker Compose files that communicate via a shared network (`lio_agent_net`). This prevents resource collisions, isolates the "Noisy Neighbor" problem, and strictly protects production data:
+
+- **`docker-compose.ollama.yaml`**: The foundational AI engine. It runs once and serves as a shared microservice for all environments, drastically saving system RAM/VRAM.
+- **`docker-compose.prod.yaml`**: Your production bot and real database. It runs continuously in the background using the shared Ollama engine.
+- **`docker-compose.dev.yaml`**: The dedicated development environment (App + DB). It allows building new features (like RAG) and modifying schemas without risking production data or intercepting messages from the live bot.
+- **`docker-compose.test.yaml`**: An ephemeral DB designed exclusively for running automated test suites (`pytest`).
+
+> **Important Setup Step**: Before starting any compose file for the first time, you must create the shared network:
+> ```bash
+> docker network create lio_agent_net
+> ```
+
 ## 🚦 Quick Start
 
-1. **Clone the repo** and set up your `.env` file.
-2. **Start Dependencies**: Launch the infrastructure (PostgreSQL and Ollama) in the background:
+1. **Clone the repo** and set up your `.env.prod` file.
+2. **Start AI Engine**: Launch the Ollama service in the background:
    ```bash
-   docker compose --env-file .env -f docker/docker-compose.dev.yaml up -d postgres ollama ollama-pull-model
+   docker compose -f docker/docker-compose.ollama.yaml up -d
    ```
-3. **Run Application**: Build and start the bot:
+3. **Start Application & DB**: Launch the bot and PostgreSQL database running in the background:
    ```bash
-   docker compose --env-file .env -f docker/docker-compose.dev.yaml up --build lio-agent
+   docker compose --env-file .env.prod -f docker/docker-compose.prod.yaml up -d
    ```
+4. **View Logs**: Monitor the bot's live logs:
+   ```bash
+   docker logs -f lio-agent-app-python_prod
+   ```
+
 
 ## 🧪 Testing
 
@@ -78,6 +102,8 @@ uv run pytest tests/unit/
 
 #### 2. Integration & E2E Tests
 These tests require the infrastructure (DB and AI) to be running.
+*(Note: Ensure the AI Engine `docker-compose.ollama.yaml` is already running).*
+
 1. **Start Test Infrastructure**:
    ```bash
    docker compose --env-file tests/.env.test -f docker/docker-compose.test.yaml up -d

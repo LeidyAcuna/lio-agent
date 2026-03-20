@@ -1,15 +1,12 @@
 services:
-  lio-agent-python_dev:
+  lio-agent-python_prod:
     build:
       context: ..
-      dockerfile: docker/Dockerfile.dev
-    container_name: lio-agent-app-python_dev
+      dockerfile: docker/Dockerfile
+    container_name: lio-agent-app-python_prod
     restart: always
-    volumes:
-      - ../src:/app/src
-      - /app/.venv
     ports:
-      - "5679:5679"
+      - "5677:5677"
     environment:
       - DEBUG_MODE=false
       - POSTGRES_DB=${POSTGRES_DB}
@@ -22,16 +19,16 @@ services:
       - OLLAMA_URL=${OLLAMA_URL}
       - ALLOWED_TELEGRAM_USER_IDS=${ALLOWED_TELEGRAM_USER_IDS}
     depends_on:
-      postgres_dev:
+      postgres_prod:
         condition: service_healthy
     env_file:
-      - ../.env.dev
+      - ../.env.prod
     networks:
       - lio_agent_net
 
-  postgres_dev:
+  postgres_prod:
     image: postgres:18.1
-    container_name: dev_lio_agent_postgres_db
+    container_name: prod_lio_agent_postgres_db
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
@@ -41,20 +38,18 @@ services:
     ports:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     volumes:
-      - lio_postgres_data_dev:/var/lib/postgresql
+      - lio_postgres_data:/var/lib/postgresql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       start_period: 10s
       retries: 5
-    env_file:
-      - ../.env.dev
     networks:
       - lio_agent_net
 
 volumes:
-  lio_postgres_data_dev:
+  lio_postgres_data:
     external: true
 
 networks:
