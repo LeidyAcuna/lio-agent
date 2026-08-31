@@ -10,7 +10,10 @@ wheels/
 
 # Virtual environments
 .venv
-.env
-.env.test
+
+# Environment variables — ignore ALL .env files...
+.env*
+# ...except the safe example template
+!.env.example
 text.txt
 tests/logs
